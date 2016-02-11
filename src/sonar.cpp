@@ -12,7 +12,8 @@ int main(int argc, char **argv){
     wiringPiSetup();
     ros::NodeHandle nh;
     ros::Publisher alt_pub = nh.advertise<std_msgs::Float32>("/altitude", 10);
-    ros::Publisher range_pub = nh.advertise<sensor_msgs::Range>("/mavros/distance_sensor/sonar_1_sub")
+    ros::Publisher range_pub = nh.advertise<sensor_msgs::Range>
+		("/mavros/distance_sensor/sonar_1_sub", 10);
     ros::Rate rate(20);
     unsigned int timeout = 20000;
     int pin = 7;
@@ -52,6 +53,7 @@ int main(int argc, char **argv){
         }
 
         if(goodread){
+	    range.header.stamp = ros::Time::now();
             duration = endtime - starttime;
             distance.data = (duration*34.0)/200000.0;
             range.range = distance.data;
