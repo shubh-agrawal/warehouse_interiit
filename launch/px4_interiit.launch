@@ -10,7 +10,7 @@
     <arg name="est" default="lpe"/>
     <arg name="vehicle" default="iris"/>
     <arg name="world" default="$(find warehouse_interiit)/worlds/Warehouse.world"/>
-    <arg name="sdf" default="$(find mavlink_sitl_gazebo)/models/$(arg vehicle)/$(arg vehicle).sdf"/>
+    <arg name="sdf" default="$(find warehouse_interiit)/models/typhoon_h480/typhoon_h480.sdf"/>
     <arg name="rcS" default="$(find px4)/posix-configs/SITL/init/$(arg est)/$(arg vehicle)"/>
 
     <arg name="headless" default="false"/>
