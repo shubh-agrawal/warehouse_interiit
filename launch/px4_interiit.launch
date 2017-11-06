@@ -1,8 +1,8 @@
 <launch>
 
     <!-- Posix SITL environment launch script -->
-    <arg name="x" default="0"/>
-    <arg name="y" default="0"/>
+    <arg name="x" default="1"/>
+    <arg name="y" default="-12"/>
     <arg name="z" default="0.2"/>
     <arg name="R" default="0"/>
     <arg name="P" default="0"/>
