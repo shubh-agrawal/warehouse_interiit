@@ -1,7 +1,7 @@
 /**
  * @file offb_node.cpp
- * @brief offboard example node, written with mavros version 0.14.2, px4 flight
- * stack and tested in Gazebo SITL
+ * @brief Offboard control example node, written with MAVROS version 0.19.x, PX4 Pro Flight
+ * Stack and tested in Gazebo SITL
  */
 
 #include <ros/ros.h>
@@ -10,11 +10,10 @@
 #include <mavros_msgs/SetMode.h>
 #include <mavros_msgs/State.h>
 #include <mavros_msgs/Altitude.h>
-#include <std_msgs/Float64.h>
-#include <iostream>
+#include <mavros_msgs/Thrust.h>
 
-#define kp 0.11
-#define ki 0.0001
+#define kp 0.115
+#define ki 0.002
 #define kd 1
 
 mavros_msgs::State current_state;
@@ -37,10 +36,12 @@ int main(int argc, char **argv)
             ("mavros/state", 10, state_cb);
     ros::Subscriber alt_sub = nh.subscribe<mavros_msgs::Altitude>
             ("mavros/altitude", 5, alt_cb);
+    //ros::Publisher local_pos_pub = nh.advertise<geometry_msgs::PoseStamped>
+    //        ("mavros/setpoint_position/local", 10);
     ros::Publisher att_pub = nh.advertise<geometry_msgs::PoseStamped>
-            ("mavros/setpoint_attitude/attitude", 10);
-    ros::Publisher thrst_pub = nh.advertise<std_msgs::Float64>
-            ("mavros/setpoint_attitude/att_throttle", 10);
+            ("mavros/setpoint_attitude/target_attitude", 10);
+    ros::Publisher thrust_pub = nh.advertise<mavros_msgs::Thrust>
+            ("mavros/setpoint_attitude/thrust", 10);
     ros::ServiceClient arming_client = nh.serviceClient<mavros_msgs::CommandBool>
             ("mavros/cmd/arming");
     ros::ServiceClient set_mode_client = nh.serviceClient<mavros_msgs::SetMode>
@@ -64,16 +65,20 @@ int main(int argc, char **argv)
     pose.pose.orientation.z = 0.0;
     pose.pose.orientation.w =  1;
 
-    std_msgs::Float64 thrust;
-    thrust.data = 0.0;
+    mavros_msgs::Thrust thrust;
+    thrust.thrust = 0.0;
     float set_alt = 2.0;
     float cur_alt = 0.0;
+
     //send a few setpoints before starting
-    // for(int i = 100; ros::ok() && i > 0; --i){
-    //     local_pos_pub.publish(pose);
-    //     ros::spinOnce();
-    //     rate.sleep();
-    // }
+    for(int i = 100; ros::ok() && i > 0; --i){
+	pose.header.stamp = ros::Time::now();
+        att_pub.publish(pose);
+	thrust.header.stamp = ros::Time::now();
+	thrust_pub.publish(thrust);
+        ros::spinOnce();
+        rate.sleep();
+    }
 
     mavros_msgs::SetMode offb_set_mode;
     offb_set_mode.request.custom_mode = "OFFBOARD";
@@ -84,10 +89,11 @@ int main(int argc, char **argv)
     ros::Time last_request = ros::Time::now();
     float error = 0, sum_error = 0, last_error = 0;
     while(ros::ok()){
+	ros::spinOnce();
         if( current_state.mode != "OFFBOARD" &&
             (ros::Time::now() - last_request > ros::Duration(5.0))){
             if( set_mode_client.call(offb_set_mode) &&
-                offb_set_mode.response.success){
+                offb_set_mode.response.mode_sent){
                 ROS_INFO("Offboard enabled");
             }
             last_request = ros::Time::now();
@@ -101,20 +107,24 @@ int main(int argc, char **argv)
                 last_request = ros::Time::now();
             }
         }
-        att_pub.publish(pose);
-        cur_alt = alti.local;
-        error = set_alt - cur_alt;
-        sum_error += error;
-        std::cout << kp*error << "  " << kd*(error-last_error) << std::endl;
-        thrust.data = 0.43 + kp*error + kd*(error-last_error) + ki*sum_error;
-        if(thrust.data > 1)
-        	thrust.data = 1;
-        else if(thrust.data < 0)
-        	thrust.data = 0;
-        thrst_pub.publish(thrust);
-        last_error = error;
-        ros::spinOnce();
-        rate.sleep();
+	if(current_state.armed){
+		pose.header.stamp = ros::Time::now();
+        	att_pub.publish(pose);
+        	cur_alt = alti.local;
+        	error = set_alt - cur_alt;
+        	sum_error += error;
+        //std::cout << kp*error << "  " << kd*(error-last_error) << std::endl;
+        	thrust.thrust = 0.5 + kp*error + kd*(error-last_error) + ki*sum_error;
+        	if(thrust.thrust > 1)
+                	thrust.thrust = 1;
+        	else if(thrust.thrust < 0)
+                	thrust.thrust = 0;
+		thrust.header.stamp = ros::Time::now();
+        	thrust_pub.publish(thrust);
+        	last_error = error;
+
+               	rate.sleep();
+	}
     }
 
     return 0;
