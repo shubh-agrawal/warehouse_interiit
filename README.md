@@ -22,4 +22,5 @@ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/src/Firmware/Tools/sitl_gazebo
 - Run the simulation
 ```bash
 roslaunch warehouse_interiit px4_interiit.launch
+roslaunch mavros px4.launch fcu_url:="udp://:14540@192.168.1.36:14557"
 ```
