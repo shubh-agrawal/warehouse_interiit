@@ -24,3 +24,18 @@ export ROS_PACKAGE_PATH=$ROS_PACKAGE_PATH:~/src/Firmware/Tools/sitl_gazebo
 roslaunch warehouse_interiit px4_interiit.launch
 roslaunch mavros px4.launch fcu_url:="udp://:14540@192.168.1.36:14557"
 ```
+
+## Running Barcode Reader
+
+Implements zbar for ROS. Subscribes to ```/usb_cam/image_raw``` and publishes detected results under `/code`.
+
+```/code/image``` displays final image after processing
+
+```/code/qr``` contains the qr code data if one is encountered.
+
+```/code/bar``` contains any other barcode data if one in encountered.
+
+Requiremnets :
+OpenCV
+Zbar   ```sudo apt-get install ros-<distro>-zbar-ros``` 
+usb_cam    ```sudo apt-get install ros-<distro>-usb-cam ```
