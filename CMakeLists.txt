@@ -31,4 +31,5 @@ add_executable(takeoff_node src/takeoff.cpp)
 target_link_libraries(takeoff_node
    ${catkin_LIBRARIES}
 )
-
+add_executable( line_node src/line.cpp )
+target_link_libraries( line_node ${catkin_LIBRARIES} ${OpenCV_LIBS} )

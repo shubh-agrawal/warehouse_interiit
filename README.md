@@ -29,13 +29,17 @@ roslaunch mavros px4.launch fcu_url:="udp://:14540@192.168.1.36:14557"
 
 Implements zbar for ROS. Subscribes to ```/usb_cam/image_raw``` and publishes detected results under `/code`.
 
-```/code/image``` displays final image after processing
+- ```/code/image``` displays final image after processing
 
-```/code/qr``` contains the qr code data if one is encountered.
+- ```/code/qr``` contains the qr code data if one is encountered.
 
-```/code/bar``` contains any other barcode data if one in encountered.
+- ```/code/bar``` contains any other barcode data if one in encountered.
 
-Requiremnets :
+Run ```usb_cam``` node before running ```barcode_node```
+
+Requirements :
 OpenCV
-Zbar   ```sudo apt-get install ros-<distro>-zbar-ros``` 
+
+Zbar   ```sudo apt-get install ros-<distro>-zbar-ros```
+ 
 usb_cam    ```sudo apt-get install ros-<distro>-usb-cam ```
