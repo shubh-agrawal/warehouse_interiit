@@ -11,6 +11,7 @@ find_package(catkin REQUIRED COMPONENTS
   sensor_msgs
   cv_bridge
   image_transport
+  message_generation
 )
 find_package(OpenCV REQUIRED)
 find_package (ZBar0)
@@ -20,8 +21,19 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
 )
 
+add_message_files(
+  FILES
+  line.msg
+  linearray.msg
+)
+
+generate_messages(
+  DEPENDENCIES
+  std_msgs
+)
+
 catkin_package(
-  CATKIN_DEPENDS cv_bridge roscpp 
+  CATKIN_DEPENDS cv_bridge roscpp message_runtime
 )
 add_executable(barcode_node
 	src/barcode.cpp

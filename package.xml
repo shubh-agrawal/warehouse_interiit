@@ -20,6 +20,8 @@
   <build_depend>OpenCV</build_depend>
   <depend>image_transport</depend>
   <depend>zbar</depend>
+  <build_depend>message_generation</build_depend>
+  <exec_depend>message_runtime</exec_depend>
   <exec_depend>cv_bridge</exec_depend>
   <exec_depend>roscpp</exec_depend>
   <exec_depend>rospy</exec_depend>
