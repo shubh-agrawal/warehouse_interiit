@@ -366,7 +366,7 @@
           </material>
           <transparency>0</transparency>
           <cast_shadows>1</cast_shadows>
-        </visual>
+        </visual >
 	<visual name='aux_line2'>
           <pose frame=''>0 0.625 0 0 -0 1.56463</pose>
           <geometry>
@@ -406,6 +406,23 @@
           <geometry>
             <box>
               <size>0.2 4 0.005</size>
+            </box>
+          </geometry>
+          <material>
+            <lighting>1</lighting>
+            <ambient>1 1 0 1</ambient>
+            <diffuse>1 1 0 1</diffuse>
+            <specular>0.1 0.1 0.1 1</specular>
+            <emissive>0 0 0 0</emissive>
+          </material>
+          <transparency>0</transparency>
+          <cast_shadows>1</cast_shadows>
+        </visual>
+  <visual name='aux_line5'>
+          <pose frame=''>7 -3.475 0 0 -0 1.56463</pose>
+          <geometry>
+            <box>
+              <size>0.2 14 0.005</size>
             </box>
           </geometry>
           <material>

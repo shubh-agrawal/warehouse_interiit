@@ -11,13 +11,45 @@
 #include "warehouse_interiit/LineArray.h"
 
 
-#define N_SLICE_H 13
+#define N_SLICE_H 16
 #define N_SLICE_W 15
 
 using namespace std;
 using namespace cv;
 
 Mat img;
+
+int LDetect(std::vector<Point> points, Vec2f v_line, Vec2f h_line,int sectionY,int sectionX){
+	Point p = Point(v_line[0],h_line[0]);
+	int count_l,count_r;
+	count_l = 0;
+	count_r = 0;
+	for (std::vector<Point>::iterator i = points.begin(); i != points.end(); ++i)
+	{
+		if(i->y > p.y - sectionY and i->y < p.y + sectionY){
+			if(i->x > p.x + sectionX/2)
+				count_r++;
+			if(i->x < p.x - sectionX/2)
+				count_l++;
+		}
+	}
+	// ROS_INFO("%d %d\n",p.x,p.y);
+	if(count_l and count_r ){
+		float ratio = float(count_r)/float(count_l);
+		if(ratio > 1.5){
+			return 1;
+		}
+		if(ratio < 0.9){
+			return -1;
+		}
+		return 0;
+	}
+	if(count_r and count_l == 0)
+		return 1;
+	if(count_r == 0 and count_l)
+		return -1;
+	return 0;
+}
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
@@ -103,7 +135,8 @@ int main(int argc, char**argv)
 				}
 				cluster_index.push(lines.size());
 
-		        // Iterate through each cluster      
+		        // Iterate through each cluster  
+		        Vec2f v_line,h_line;    
 		        int j = 0;
 		        for( ; !cluster_index.empty(); )
 		        {
@@ -127,11 +160,26 @@ int main(int argc, char**argv)
 		            		temp.rho = r_avg;
 		            		temp.theta = t_avg;
 		            		horizontal_lines.lines.push_back(temp);
-		            		std::reverse(horizontal_lines.lines.begin(),horizontal_lines.lines.end());
+		            		//std::reverse(horizontal_lines.lines.begin(),horizontal_lines.lines.end());
 		            		other.publish(horizontal_lines);
 		            	}
 		            if(t_avg > 10*CV_PI/180 and t_avg < 80*CV_PI/180 or t_avg > 100*CV_PI/180)
 		            	continue;
+		            if(t_avg < 10*CV_PI/180){
+		            	v_line[0] = r_avg;
+		            	v_line[1] = t_avg;
+		            }
+		          	else{
+		          		h_line[0] = r_avg;
+		            	h_line[1] = t_avg;
+		            }
+		            	int L = LDetect(points,v_line,h_line,int(img.rows/N_SLICE_H),int(img.cols/N_SLICE_W));
+		          		if(L){
+		          			if(L == -1) ROS_INFO("Left L\t");
+		          			else 
+		          				if(L == 1) ROS_INFO("Right L\t");
+		          		}
+
 		            j = k;                                //update cluster boundary
 
 		            double cos_t = cos(t_avg);  double sin_t = sin(t_avg);
