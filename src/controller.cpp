@@ -24,11 +24,11 @@
 #define kiH 0.002
 #define kdH 1
 
-#define kpR 0.004
+#define kpR 0.001
 #define kiR 0.0
 #define kdR 0.0
 
-#define kpP 0.004
+#define kpP 0.001
 #define kiP 0.0
 #define kdP 0.0
 

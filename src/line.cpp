@@ -42,7 +42,7 @@ int main(int argc, char**argv)
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray>("/lines/horizontal", 10);
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub = it.subscribe("/cgo3_camera/image_raw", 1, imageCallback);
-	ros::Rate rate(5);
+	ros::Rate rate(10);
 	std::vector<Point> points;
 	namedWindow("original");
 	namedWindow("Point");
@@ -74,7 +74,7 @@ int main(int argc, char**argv)
 			}
 			cvtColor(dis,dis,CV_BGR2GRAY);
 			vector<Vec2f> lines;
-			HoughLines(dis, lines, 1, CV_PI*30/180, 80, 0, 0 );
+			HoughLines(dis, lines, 1, CV_PI*30/180, 100, 0, 0 );
 			if(lines.size() > 0){
 				sort(lines.begin(), lines.end(), sortByTheta);
 			 	prev_theta = lines[0][1]*180/CV_PI;
@@ -95,6 +95,7 @@ int main(int argc, char**argv)
 							if(fabs(rho - prev_rho) > 3*img.rows/N_SLICE_H){
 								cluster_index.push(r_i);
 							}
+							prev_rho = rho;
 						}
 						break;
 					}
@@ -126,6 +127,7 @@ int main(int argc, char**argv)
 		            		temp.rho = r_avg;
 		            		temp.theta = t_avg;
 		            		horizontal_lines.lines.push_back(temp);
+		            		std::reverse(horizontal_lines.lines.begin(),horizontal_lines.lines.end());
 		            		other.publish(horizontal_lines);
 		            	}
 		            if(t_avg > 10*CV_PI/180 and t_avg < 80*CV_PI/180 or t_avg > 100*CV_PI/180)
