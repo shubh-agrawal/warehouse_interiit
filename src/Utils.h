@@ -71,7 +71,7 @@ Mat RemoveBackground(Mat image, bool b){
     if(b)
     {
 		cvtColor(image, image, CV_BGR2HSV);
-		inRange(image, Scalar(10,70,70), Scalar(30,255,255), mask);
+		inRange(image, Scalar(15,150,150), Scalar(30,255,255), mask);
 		bitwise_and(image, image, masked_image, mask);
 	    erode(masked_image, img_erosion, kernel, Point(-1, -1), 3);
 	    dilate(img_erosion,img_erosion,kernel,Point(-1,-1),7);
