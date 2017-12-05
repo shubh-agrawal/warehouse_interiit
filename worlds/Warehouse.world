@@ -337,7 +337,7 @@
           <pose frame=''>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>0.1 7 0.005</size>
+              <size>0.2 7 0.005</size>
             </box>
           </geometry>
           <material>
@@ -354,7 +354,7 @@
           <pose frame=''>0 -0.625 0 0 -0 1.56463</pose>
           <geometry>
             <box>
-              <size>0.05 4 0.005</size>
+              <size>0.2 4 0.005</size>
             </box>
           </geometry>
           <material>
@@ -371,7 +371,7 @@
           <pose frame=''>0 0.625 0 0 -0 1.56463</pose>
           <geometry>
             <box>
-              <size>0.05 4 0.005</size>
+              <size>0.2 4 0.005</size>
             </box>
           </geometry>
           <material>
@@ -388,7 +388,7 @@
           <pose frame=''>0 -1.875 0 0 -0 1.56463</pose>
           <geometry>
             <box>
-              <size>0.05 4 0.005</size>
+              <size>0.2 4 0.005</size>
             </box>
           </geometry>
           <material>
@@ -405,7 +405,7 @@
           <pose frame=''>0 1.875 0 0 -0 1.56463</pose>
           <geometry>
             <box>
-              <size>0.05 4 0.005</size>
+              <size>0.2 4 0.005</size>
             </box>
           </geometry>
           <material>
@@ -428,4 +428,3 @@
 
   </world>
 </sdf>
-
