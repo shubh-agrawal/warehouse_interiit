@@ -3,6 +3,7 @@
 #include "Image.h"
 #include "opencv2/opencv.hpp"
 #include <vector>
+#include "Config.h"
 
 using namespace std;
 using namespace cv;
@@ -71,7 +72,7 @@ Mat RemoveBackground(Mat image, bool b){
     if(b)
     {
 		cvtColor(image, image, CV_BGR2HSV);
-		inRange(image, Scalar(15,150,150), Scalar(30,255,255), mask);
+		inRange(image, Scalar(H_LOW,S_LOW,V_LOW), Scalar(H_HIGH,S_HIGH,V_HIGH), mask);
 		bitwise_and(image, image, masked_image, mask);
 	    erode(masked_image, img_erosion, kernel, Point(-1, -1), 3);
 	    dilate(img_erosion,img_erosion,kernel,Point(-1,-1),7);
