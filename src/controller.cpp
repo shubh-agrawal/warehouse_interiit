@@ -36,9 +36,9 @@ using namespace warehouse_interiit;
 using namespace std;
 
 mavros_msgs::State current_fcstate; //Flight Controller state
-float current_alti;
 string current_state; //High Level state. Current Supported state are: Land, Takeoff and Follow
-LineArray line_x;
+float current_alti;
+Line line_x;
 Line line_y;
 float current_heading;
 
@@ -58,7 +58,7 @@ void heading_cb(const std_msgs::Float64::ConstPtr& msg){
      current_heading = (msg->data + 90.0)*PI/180.0;
 }
 
-void x_cb(const LineArray::ConstPtr& msg){
+void x_cb(const Line::ConstPtr& msg){
     line_x = *msg;
 }
 
@@ -78,10 +78,10 @@ int main(int argc, char **argv)
             ("state", 5, state_cb);
     ros::Subscriber alt_sub = nh.subscribe<mavros_msgs::Altitude>
             ("mavros/altitude", 5, alt_cb);
-    ros::Subscriber x_sub = nh.subscribe<LineArray>
-            ("lines/horizontal", 5, x_cb);
+    ros::Subscriber x_sub = nh.subscribe<Line>
+            ("feedback/horizontal", 5, x_cb);
     ros::Subscriber y_sub = nh.subscribe<Line>
-            ("lines/vertical", 5, y_cb);
+            ("feedback/vertical", 5, y_cb);
     ros::Subscriber yaw_sub = nh.subscribe<std_msgs::Float64>
             ("/mavros/global_position/compass_hdg", 5, heading_cb);
 
@@ -143,7 +143,6 @@ int main(int argc, char **argv)
           errorP = 0, last_errorP = 0;
     current_heading = 3*PI/2;
     yaw = current_heading;
-    line_x.lines.push_back(line_y);
     while(ros::ok()){
         ros::spinOnce();
         if( current_fcstate.mode != "OFFBOARD" &&
@@ -165,8 +164,7 @@ int main(int argc, char **argv)
         }
         // Follow mode: Follows line or hover at a node.
         if(current_state == "Follow"){
-            errorP = 240.0 - line_x.lines[0].rho;
-            ROS_INFO("line_x.lines[0].rho: %f", line_x.lines[0].rho);
+            errorP = 240.0 - line_x.rho;
             pitch = kpP*errorP + kdP*(errorP-last_errorP);
             if(pitch > MAX_ANGLE)
                 pitch = MAX_ANGLE;
