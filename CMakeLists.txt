@@ -130,7 +130,7 @@ add_executable(strategy src/strategy.cpp)
 # add_executable(line_detector src/line_detect.cpp)
 add_executable(controller src/controller.cpp)
 add_executable(line_detector src/line.cpp)
-# add_executable(barcode_node src/barcode.cpp)
+add_executable(barcode_node src/barcode.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -160,8 +160,8 @@ target_link_libraries( line_detector
    ${OpenCV_LIBS}
 )
 
-# target_link_libraries(barcode_node
-#    zbar
-#    ${catkin_LIBRARIES}
-#    ${OpenCV_LIBS}
-# )
+ target_link_libraries(barcode_node
+    zbar
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+ )

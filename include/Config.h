@@ -18,4 +18,14 @@
 #define HORIZONTAL_TOPIC "/lines/horizontal"    //Publish Topic for Horizontal Lines
 #define CAM_TOPIC "/cgo3_camera/image_raw"    //Publish Topic for Camera Feed
 
+
+
+//Barcode Constants
+
+#define BARCODE_SUB "/usb_cam/image_raw"	//Front Facing Camera Topic
+#define BARCODE_IMG_TOPIC "/code/image"		//Topic to Publish Detected QR/Bar Code Rectangle
+#define QR_TOPIC "/code/qr"			//Publish QR Code Data
+#define BAR_TOPIC "/code/bar"			//Publish Bar Code Data
+#define LOW_BINARY_THRESHOLD 180		//Minimum Threshold for Binary Conversion 
+
 #endif

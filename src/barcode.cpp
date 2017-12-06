@@ -8,6 +8,7 @@
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include "std_msgs/String.h"
+#include "Config.h"
 
 using namespace std;
 using namespace cv;
@@ -35,10 +36,10 @@ int main(int argc, char **argv) {
     ros::init(argc, argv, "image_publisher");
 	ros::NodeHandle nh;
 	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber sub = it.subscribe("/usb_cam/image_raw", 1, imageCallback);
-	image_transport::Publisher pub = it.advertise("/code/image", 1);
-	ros::Publisher qr_pub = nh.advertise<std_msgs::String>("/code/qr", 10);
-    ros::Publisher bar_pub = nh.advertise<std_msgs::String>("/code/bar", 10);
+	image_transport::Subscriber sub = it.subscribe(BARCODE_SUB, 1, imageCallback);
+	image_transport::Publisher pub = it.advertise(BARCODE_IMG_TOPIC, 1);
+	ros::Publisher qr_pub = nh.advertise<std_msgs::String>(QR_TOPIC, 10);
+    ros::Publisher bar_pub = nh.advertise<std_msgs::String>(BAR_TOPIC, 10);
     // Create a zbar reader
     ImageScanner scanner;
     
@@ -55,10 +56,22 @@ int main(int argc, char **argv) {
         cvtColor(frame, frame_grayscale, CV_BGR2GRAY);
 
         // Obtain image data
+        Mat blurred; double sigma = 1, _threshold = 5, amount = 1;
+        GaussianBlur(frame, blurred, Size(), sigma, sigma);
+        Mat lowContrastMask = abs(frame - blurred) < _threshold;
+        Mat sharpened = frame*(1+amount) + blurred*(-amount);
+        imshow("sharp",sharpened);
+        frame.copyTo(sharpened, lowContrastMask);
+        imshow("Pic",frame);
+        cvtColor(sharpened, frame_grayscale, CV_BGR2GRAY);
+
+        // then adjust the threshold to actually make it binary
+        Mat binaryMat;
+        threshold(frame_grayscale, binaryMat, LOW_BINARY_THRESHOLD, 255, CV_THRESH_BINARY);
         int width = frame_grayscale.cols;
         int height = frame_grayscale.rows;
-        uchar *raw = (uchar *)(frame_grayscale.data);
-
+        uchar *raw = (uchar *)(binaryMat.data);
+        imshow("Bin",binaryMat);
         // Wrap image data
         Image image(width, height, "Y800", raw, width * height);
 
