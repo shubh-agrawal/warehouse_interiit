@@ -17,7 +17,7 @@
 #include <warehouse_interiit/LineArray.h>
 #include <string.h>
 
-#define MAX_ANGLE 0.09 //Maximum roll and pitch value
+#define MAX_ANGLE 0.1 //Maximum roll and pitch value
 #define PI 3.14159
 
 #define kpH 0.115
@@ -28,8 +28,8 @@
 #define kiR 0.0
 #define kdR 0.0
 
-#define kpP 0.0008
-#define kiP 0.0000001
+#define kpP 0.001
+#define kiP 0.000001
 #define kdP 0.0
 
 using namespace warehouse_interiit;
@@ -141,6 +141,7 @@ int main(int argc, char **argv)
     float errorH = 0, sum_errorH = 0, last_errorH = 0,
           errorR = 0, sum_errorR = 0, last_errorR = 0,
           errorP = 0, sum_errorP = 0, last_errorP = 0;
+    bool turnComplete = true;
     current_heading = 3*PI/2;
     yaw = current_heading;
     while(ros::ok()){
@@ -162,10 +163,25 @@ int main(int argc, char **argv)
                 last_request = ros::Time::now();
             }
         }
+
+        if(turnComplete){
+            if(current_state == "Turn_Left"){
+                yaw = current_heading + PI/2;
+                if(yaw > 2*PI)
+                    yaw = yaw - 2*PI;
+                turnComplete = false;
+            }
+            else if(current_state == "Turn_Right"){
+                yaw = current_heading - PI/2;
+                if(yaw < 0)
+                    yaw = yaw + 2*PI;
+                turnComplete = false;
+            }
+        }
         // Follow mode: Follows line or hover at a node.
         if(current_state == "Follow"){
             errorP = 240.0 - line_x.rho;
-            if(errorP < 10 && errorP > -10)
+            if(errorP < 50 && errorP > -50)
                 sum_errorP += errorP;
             pitch = kpP*errorP + kiP*sum_errorP + kdP*(errorP-last_errorP);
             if(pitch > MAX_ANGLE)

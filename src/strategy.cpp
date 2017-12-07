@@ -48,7 +48,7 @@ int main(int argc, char **argv)
  
     std_msgs::String state;
     Line last_y, last_x, line_x;
-    bool isHovering = false, isScanning = false;
+    bool isHovering = false, isScanning = false, turnFlag = false;
     float error = 999999, difference = WIDTH_X;
     int hover_count = 0;
     ros::Time scanning_start;
@@ -93,17 +93,18 @@ int main(int argc, char **argv)
                 float rho = lines_x.lines[i].rho;
                 if(((IMAGE_HEIGHT/2) - (rho) < difference) && 
                     ((IMAGE_HEIGHT/2) - (rho) > -1*difference)){
-                    x_pub.publish(lines_x.lines[i]);
                     temp = lines_x.lines[i];
                     // last_rho = 9999;
                     break;
                 }
             }
+            x_pub.publish(temp);
             if(temp.L){
-                const char *a = (temp.L > 0)?"Right":"Left";
-                ROS_INFO(a);
+                state.data = (temp.L > 0)?"Turn_Right":"Turn_Left";
+                turnFlag = true;
             }
             else{
+                turnFlag = false;
                 if(ros::Time::now() - scanning_start < ros::Duration(20.0)){
                     scan.data = true;
                     barcode_scan.publish(scan);
@@ -117,12 +118,13 @@ int main(int argc, char **argv)
                 }
             }
         }
-
-        if(current_alti > 1 && line_y.rho!=0){
-            state.data = "Follow";
+        if(!turnFlag){
+            if(current_alti > 1 && line_y.rho!=0){
+                state.data = "Follow";
+            }
+            else
+                state.data = "Takeoff";
         }
-        else
-            state.data = "Takeoff";
         state_pub.publish(state);
         rate.sleep();
     }
