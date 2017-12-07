@@ -146,7 +146,6 @@ int main(int argc, char **argv)
     float errorH = 0, sum_errorH = 0, last_errorH = 0,
           errorR = 0, sum_errorR = 0, last_errorR = 0,
           errorP = 0, sum_errorP = 0, last_errorP = 0;
-    bool turnComplete = true;
     current_heading = 3*PI/2;
     yaw = current_heading;
     while(ros::ok()){
@@ -169,20 +168,17 @@ int main(int argc, char **argv)
             }
         }
 
-        if(turnComplete){
-            if(current_state == "Turn_Left"){
-                yaw = current_heading + PI/2;
-                if(yaw > 2*PI)
-                    yaw = yaw - 2*PI;
-                turnComplete = false;
-            }
-            else if(current_state == "Turn_Right"){
-                yaw = current_heading - PI/2;
-                if(yaw < 0)
-                    yaw = yaw + 2*PI;
-                turnComplete = false;
-            }
+        if(current_state == "Turn_Left"){
+            yaw = current_heading + PI/2;
+            if(yaw > 2*PI)
+                yaw = yaw - 2*PI;
         }
+        else if(current_state == "Turn_Right"){
+            yaw = current_heading - PI/2;
+            if(yaw < 0)
+                yaw = yaw + 2*PI;
+        }
+
         // Follow mode: Follows line or hover at a node.
         if(current_state == "Follow"){
             errorP = 240.0 - line_x.rho;
