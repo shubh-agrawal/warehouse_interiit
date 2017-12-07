@@ -1,9 +1,10 @@
 #include <ros/ros.h>
+#include <std_msgs/Bool.h>
+#include <std_msgs/Float32.h>
 #include <std_msgs/String.h>
 #include <mavros_msgs/Altitude.h>
 #include <warehouse_interiit/Line.h>
 #include <warehouse_interiit/LineArray.h>
-#include <std_msgs/Bool.h>
 
 #define IMAGE_HEIGHT 480
 #define IMAGE_WIDTH 640
@@ -36,6 +37,7 @@ int main(int argc, char **argv)
     ros::Publisher state_pub = nh.advertise<std_msgs::String>("state", 10);
     ros::Publisher x_pub = nh.advertise<Line>("feedback/horizontal", 10);
     ros::Publisher y_pub = nh.advertise<Line>("feedback/vertical", 10);
+    ros::Publisher alt_set_pub = nh.advertise<std_msgs::Float32>("altitude_setpoint", 10);
     ros::Publisher barcode_scan = nh.advertise<std_msgs::Bool>("code/scan", 100);
     ros::Subscriber alt_sub = nh.subscribe<mavros_msgs::Altitude>
             ("mavros/altitude", 5, alt_cb);
@@ -49,7 +51,7 @@ int main(int argc, char **argv)
     std_msgs::String state;
     Line last_y, last_x, line_x;
     bool isHovering = false, isScanning = false, turnFlag = false;
-    float error = 999999, difference = WIDTH_X;
+    float alt_set = 1.2, error = 999999, difference = WIDTH_X;
     int hover_count = 0;
     ros::Time scanning_start;
     // float last_rho = 9999.0;
@@ -86,6 +88,7 @@ int main(int argc, char **argv)
                 scanning_start = ros::Time::now();
                 difference = WIDTH_X;
             }
+            alt_set = 1.2;
         }
         else{
             Line temp;
@@ -105,7 +108,14 @@ int main(int argc, char **argv)
             }
             else{
                 turnFlag = false;
-                if(ros::Time::now() - scanning_start < ros::Duration(20.0)){
+                if(ros::Time::now() - scanning_start < ros::Duration(10.0)){
+                    alt_set = 2.0;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(20.0)){
+                    alt_set = 1.2;
                     scan.data = true;
                     barcode_scan.publish(scan);
                     ROS_INFO("Scanning");

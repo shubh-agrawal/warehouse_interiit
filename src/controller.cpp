@@ -1,6 +1,6 @@
 #include <ros/ros.h>
 
-#include <std_msgs/Float64.h>
+#include <std_msgs/Float32.h>
 #include <std_msgs/String.h>
 
 #include <geometry_msgs/PoseStamped.h>
@@ -28,7 +28,7 @@
 #define kiR 0.0
 #define kdR 0.0
 
-#define kpP 0.001
+#define kpP 0.0008
 #define kiP 0.000001
 #define kdP 0.0
 
@@ -38,6 +38,7 @@ using namespace std;
 mavros_msgs::State current_fcstate; //Flight Controller state
 string current_state; //High Level state. Current Supported state are: Land, Takeoff and Follow
 float current_alti;
+float set_alt;
 Line line_x;
 Line line_y;
 float current_heading;
@@ -54,7 +55,11 @@ void alt_cb(const mavros_msgs::Altitude::ConstPtr& msg){
      current_alti = msg->local;
 }
 
-void heading_cb(const std_msgs::Float64::ConstPtr& msg){
+void alt_set_cb(const std_msgs::Float32::ConstPtr& msg){
+     set_alt = msg->data;
+}
+
+void heading_cb(const std_msgs::Float32::ConstPtr& msg){
      current_heading = (msg->data + 90.0)*PI/180.0;
 }
 
@@ -78,11 +83,13 @@ int main(int argc, char **argv)
             ("state", 5, state_cb);
     ros::Subscriber alt_sub = nh.subscribe<mavros_msgs::Altitude>
             ("mavros/altitude", 5, alt_cb);
+    ros::Subscriber alt_set_sub = nh.subscribe<std_msgs::Float32>
+            ("altitude_setpoint", 5, alt_set_cb);
     ros::Subscriber x_sub = nh.subscribe<Line>
             ("feedback/horizontal", 5, x_cb);
     ros::Subscriber y_sub = nh.subscribe<Line>
             ("feedback/vertical", 5, y_cb);
-    ros::Subscriber yaw_sub = nh.subscribe<std_msgs::Float64>
+    ros::Subscriber yaw_sub = nh.subscribe<std_msgs::Float32>
             ("/mavros/global_position/compass_hdg", 5, heading_cb);
 
     ros::Publisher att_pub = nh.advertise<geometry_msgs::PoseStamped>
@@ -115,8 +122,6 @@ int main(int argc, char **argv)
 
     mavros_msgs::Thrust thrust;
     thrust.thrust = 0.0;
-    float set_alt = 1.2;
-    float cur_alt = 0.0;
 
     //send a few setpoints before starting
     for(int i = 100; ros::ok() && i > 0; --i){
