@@ -9,9 +9,9 @@
 
 #define IMAGE_HEIGHT 480
 #define IMAGE_WIDTH 640
-#define WIDTH_X 70
-#define MAX_ERROR_X 90
-#define MAX_HOVER_COUNT 20
+#define WIDTH_X 50
+#define MAX_ERROR_X 75
+#define MAX_HOVER_COUNT 10
 
 using namespace warehouse_interiit;
 
@@ -53,12 +53,12 @@ int main(int argc, char **argv)
     std_msgs::String state;
     Line last_y, last_x, line_x;
     std_msgs::Float32 alt_set;
-    alt_set.data = 1.2;
+    alt_set.data = 1.0;
     bool isHovering = false, isScanning = false, turnFlag = false;
     float error = 999999, difference = WIDTH_X;
     int hover_count = 0;
     ros::Time scanning_start;
-    // float last_rho = 9999.0;
+    float last_rho;
     while(ros::ok()){
         ros::spinOnce();
         //Vertical line preprocess
@@ -75,9 +75,9 @@ int main(int argc, char **argv)
                 if((IMAGE_HEIGHT/2) - (lines_x.lines[i].rho) < difference)
                     continue;
                 else{
-                    // last_rho = lines_x.lines[i].rho;
+                    last_rho = lines_x.lines[i].rho;
                     x_pub.publish(lines_x.lines[i]);
-                    error = IMAGE_HEIGHT/2 - lines_x.lines[i].rho;
+                    error = IMAGE_HEIGHT/2 - last_rho;
                     break;
                 }
             }
@@ -89,45 +89,88 @@ int main(int argc, char **argv)
                 ++hover_count;
             if(hover_count > MAX_HOVER_COUNT){
                 isHovering = true;
-                first_hover = true;
+                // first_hover = true;
                 scanning_start = ros::Time::now();
                 difference = WIDTH_X;
             }
-            alt_set.data = 1.2;
+            alt_set.data = 1.0;
         }
         else{
             Line temp;
             for(int i = 0; i < lines_x.lines.size(); ++i){
                 float rho = lines_x.lines[i].rho;
-                if(((IMAGE_HEIGHT/2) - (rho) < difference) && 
-                    ((IMAGE_HEIGHT/2) - (rho) > -1*difference) and first_hover){
+                if(fabs(last_rho - rho) < 2*difference){
                     temp = lines_x.lines[i];
-                    hover_rho = temp.rho;
-                    first_hover = false;
+                    last_rho = temp.rho;
                     break;
-                }
-                else{
-                    if(fabs(hover_rho - rho) < 2*difference ){
-                        temp = lines_x.lines[i];
-                        break;
-                    }
                 }
             }
             x_pub.publish(temp);
             if(temp.L){
                 state.data = (temp.L > 0)?"Turn_Right":"Turn_Left";
-                turnFlag = true;
+                scan.data = false;
+                isHovering = false;
+                hover_count = 0;
+                difference = WIDTH_X;
+                alt_set.data = 1.0;
+                for(int i = 0; i < 5; ++i){
+                    state_pub.publish(state);
+                    alt_set_pub.publish(alt_set);
+                    ros::Duration(0.1).sleep();
+                }
+                continue;
             }
             else{
-                turnFlag = false;
-                if(ros::Time::now() - scanning_start < ros::Duration(10.0)){
-                    alt_set.data = 2.0;
+                if(ros::Time::now() - scanning_start < ros::Duration(5.0)){
+                    alt_set.data = 1.0;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(8.0)){
+                    alt_set.data = 1.2;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(12.0)){
+                    alt_set.data = 1.4;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(16.0)){
+                    alt_set.data = 1.6;
                     scan.data = true;
                     barcode_scan.publish(scan);
                     ROS_INFO("Scanning");
                 }
                 else if(ros::Time::now() - scanning_start < ros::Duration(20.0)){
+                    alt_set.data = 1.8;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(24.0)){
+                    alt_set.data = 1.6;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(28.0)){
+                    alt_set.data = 1.4;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(32.0)){
                     alt_set.data = 1.2;
+                    scan.data = true;
+                    barcode_scan.publish(scan);
+                    ROS_INFO("Scanning");
+                }
+                else if(ros::Time::now() - scanning_start < ros::Duration(36.0)){
+                    alt_set.data = 1.0;
                     scan.data = true;
                     barcode_scan.publish(scan);
                     ROS_INFO("Scanning");
@@ -140,13 +183,11 @@ int main(int argc, char **argv)
                 }
             }
         }
-        if(!turnFlag){
-            if(current_alti > 1 && line_y.rho!=0){
-                state.data = "Follow";
-            }
-            else
-                state.data = "Takeoff";
+        if(current_alti > 1 && line_y.rho!=0){
+            state.data = "Follow";
         }
+        else
+            state.data = "Takeoff";
         state_pub.publish(state);
         alt_set_pub.publish(alt_set);
         rate.sleep();
