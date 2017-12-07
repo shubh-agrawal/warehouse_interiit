@@ -1,6 +1,7 @@
 #include <ros/ros.h>
 
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
 
 #include <geometry_msgs/PoseStamped.h>
@@ -28,8 +29,8 @@
 #define kiR 0.0
 #define kdR 0.0
 
-#define kpP 0.0008
-#define kiP 0.000001
+#define kpP 0.001
+#define kiP 0.000000
 #define kdP 0.0
 
 using namespace warehouse_interiit;
@@ -59,8 +60,8 @@ void alt_set_cb(const std_msgs::Float32::ConstPtr& msg){
      set_alt = msg->data;
 }
 
-void heading_cb(const std_msgs::Float32::ConstPtr& msg){
-     current_heading = (msg->data + 90.0)*PI/180.0;
+void heading_cb(const std_msgs::Float64::ConstPtr& msg){
+    current_heading = (msg->data + 90)*PI/180.0;
 }
 
 void x_cb(const Line::ConstPtr& msg){
@@ -89,7 +90,7 @@ int main(int argc, char **argv)
             ("feedback/horizontal", 5, x_cb);
     ros::Subscriber y_sub = nh.subscribe<Line>
             ("feedback/vertical", 5, y_cb);
-    ros::Subscriber yaw_sub = nh.subscribe<std_msgs::Float32>
+    ros::Subscriber yaw_sub = nh.subscribe<std_msgs::Float64>
             ("/mavros/global_position/compass_hdg", 5, heading_cb);
 
     ros::Publisher att_pub = nh.advertise<geometry_msgs::PoseStamped>
@@ -115,7 +116,7 @@ int main(int argc, char **argv)
 
     geometry_msgs::PoseStamped pose;
     tf::Quaternion q;
-    float roll = 0, pitch = 0, yaw = current_heading;
+    float roll = 0, pitch = 0, initial_yaw = current_heading, yaw;
     pose.pose.position.z = 0.0;
     q.setRPY(roll, pitch, yaw);
     tf::quaternionTFToMsg(q, pose.pose.orientation);
@@ -146,8 +147,8 @@ int main(int argc, char **argv)
     float errorH = 0, sum_errorH = 0, last_errorH = 0,
           errorR = 0, sum_errorR = 0, last_errorR = 0,
           errorP = 0, sum_errorP = 0, last_errorP = 0;
-    current_heading = 3*PI/2;
-    yaw = current_heading;
+    initial_yaw = current_heading;
+    yaw = initial_yaw;
     while(ros::ok()){
         ros::spinOnce();
         if( current_fcstate.mode != "OFFBOARD" &&
@@ -169,12 +170,12 @@ int main(int argc, char **argv)
         }
 
         if(current_state == "Turn_Left"){
-            yaw = current_heading + PI/2;
+            yaw = initial_yaw + PI/2;
             if(yaw > 2*PI)
                 yaw = yaw - 2*PI;
         }
         else if(current_state == "Turn_Right"){
-            yaw = current_heading - PI/2;
+            yaw = initial_yaw - PI/2;
             if(yaw < 0)
                 yaw = yaw + 2*PI;
         }
