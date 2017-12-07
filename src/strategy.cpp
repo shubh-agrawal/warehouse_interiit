@@ -5,12 +5,13 @@
 #include <mavros_msgs/Altitude.h>
 #include <warehouse_interiit/Line.h>
 #include <warehouse_interiit/LineArray.h>
+#include "Config.h"
 
 #define IMAGE_HEIGHT 480
 #define IMAGE_WIDTH 640
-#define WIDTH_X 55
-#define MAX_ERROR_X 70
-#define MAX_HOVER_COUNT 30
+#define WIDTH_X 70
+#define MAX_ERROR_X 90
+#define MAX_HOVER_COUNT 20
 
 using namespace warehouse_interiit;
 
@@ -47,11 +48,14 @@ int main(int argc, char **argv)
             ("lines/vertical", 5, y_cb);
 
     ros::Rate rate(20);
- 
+    bool first_hover;
+    float hover_rho;
     std_msgs::String state;
     Line last_y, last_x, line_x;
+    std_msgs::Float32 alt_set;
+    alt_set.data = 1.2;
     bool isHovering = false, isScanning = false, turnFlag = false;
-    float alt_set = 1.2, error = 999999, difference = WIDTH_X;
+    float error = 999999, difference = WIDTH_X;
     int hover_count = 0;
     ros::Time scanning_start;
     // float last_rho = 9999.0;
@@ -85,19 +89,28 @@ int main(int argc, char **argv)
                 ++hover_count;
             if(hover_count > MAX_HOVER_COUNT){
                 isHovering = true;
+                first_hover = true;
                 scanning_start = ros::Time::now();
                 difference = WIDTH_X;
             }
-            alt_set = 1.2;
+            alt_set.data = 1.2;
         }
         else{
             Line temp;
             for(int i = 0; i < lines_x.lines.size(); ++i){
                 float rho = lines_x.lines[i].rho;
                 if(((IMAGE_HEIGHT/2) - (rho) < difference) && 
-                    ((IMAGE_HEIGHT/2) - (rho) > -1*difference)){
+                    ((IMAGE_HEIGHT/2) - (rho) > -1*difference) and first_hover){
                     temp = lines_x.lines[i];
+                    hover_rho = temp.rho;
+                    first_hover = false;
                     break;
+                }
+                else{
+                    if(fabs(hover_rho - rho) < 2*difference ){
+                        temp = lines_x.lines[i];
+                        break;
+                    }
                 }
             }
             x_pub.publish(temp);
@@ -108,13 +121,13 @@ int main(int argc, char **argv)
             else{
                 turnFlag = false;
                 if(ros::Time::now() - scanning_start < ros::Duration(10.0)){
-                    alt_set = 2.0;
+                    alt_set.data = 2.0;
                     scan.data = true;
                     barcode_scan.publish(scan);
                     ROS_INFO("Scanning");
                 }
                 else if(ros::Time::now() - scanning_start < ros::Duration(20.0)){
-                    alt_set = 1.2;
+                    alt_set.data = 1.2;
                     scan.data = true;
                     barcode_scan.publish(scan);
                     ROS_INFO("Scanning");
