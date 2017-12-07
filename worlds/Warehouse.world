@@ -337,7 +337,7 @@
           <pose frame=''>0 0 0 0 -0 0</pose>
           <geometry>
             <box>
-              <size>0.2 7 0.005</size>
+              <size>0.2 14 0.005</size>
             </box>
           </geometry>
           <material>
@@ -351,7 +351,7 @@
           <cast_shadows>1</cast_shadows>
         </visual>
         <visual name='aux_line1'>
-          <pose frame=''>0 -0.625 0 0 -0 1.56463</pose>
+          <pose frame=''>0 -1.25 0 0 -0 1.56463</pose>
           <geometry>
             <box>
               <size>0.2 4 0.005</size>
@@ -368,7 +368,7 @@
           <cast_shadows>1</cast_shadows>
         </visual >
 	<visual name='aux_line2'>
-          <pose frame=''>0 0.625 0 0 -0 1.56463</pose>
+          <pose frame=''>0 1.25 0 0 -0 1.56463</pose>
           <geometry>
             <box>
               <size>0.2 4 0.005</size>
@@ -385,7 +385,7 @@
           <cast_shadows>1</cast_shadows>
         </visual>
         <visual name='aux_line3'>
-          <pose frame=''>0 -1.875 0 0 -0 1.56463</pose>
+          <pose frame=''>0 -3.75 0 0 -0 1.56463</pose>
           <geometry>
             <box>
               <size>0.2 4 0.005</size>
@@ -402,7 +402,7 @@
           <cast_shadows>1</cast_shadows>
         </visual>
 	<visual name='aux_line4'>
-          <pose frame=''>0 1.875 0 0 -0 1.56463</pose>
+          <pose frame=''>0 3.75 0 0 -0 1.56463</pose>
           <geometry>
             <box>
               <size>0.2 4 0.005</size>
@@ -418,8 +418,8 @@
           <transparency>0</transparency>
           <cast_shadows>1</cast_shadows>
         </visual>
-  <visual name='aux_line5'>
-          <pose frame=''>7 -3.475 0 0 -0 1.56463</pose>
+  	<visual name='aux_line5'>
+          <pose frame=''>7 -6.8 0 0 -0 1.56463</pose>
           <geometry>
             <box>
               <size>0.2 14 0.005</size>

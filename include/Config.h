@@ -9,7 +9,7 @@
 #define H_HIGH 30	//High Hue for thresholding
 #define S_HIGH 255	//High Saturation for thresholding
 #define V_HIGH 255	//High Value for thresholding
-#define N_SLICE_H 16	//Number of height slices of image for contour detection
+#define N_SLICE_H 20	//Number of height slices of image for contour detection
 #define N_SLICE_W 15	//Number of width slices of image for contour detection 
 #define POINT_RATIO 7.0   //Ratio of Right points to Left for L detection
 #define POINT_THRESHOLD 100   //Min points required by hough transform to form a line

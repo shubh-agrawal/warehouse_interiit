@@ -52,7 +52,8 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 	warehouse_interiit::LineArray horizontal_lines;
 	ros::Rate rate(10);
     // Iterate through each cluster  
-    Vec2f v_line,h_line;    
+    Vec2f v_line,h_line;   
+    int L; 
     int j = 0;
     while(!cluster_index.empty())
     {
@@ -69,24 +70,6 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 		}
 		if(t_avg < 10*CV_PI/180)
 		{
-		  	vertical_line.rho = r_avg;
-		   	vertical_line.theta = t_avg;
-		   	vertical.publish(vertical_line);
-		}
-		else
-		   	if(t_avg > 80*CV_PI/180 and t_avg<100*CV_PI/180)
-		   	{
-		   		warehouse_interiit::Line temp;
-		   		temp.rho = r_avg;
-		   		temp.theta = t_avg;
-		   		horizontal_lines.lines.push_back(temp);
-		   		std::reverse(horizontal_lines.lines.begin(),horizontal_lines.lines.end());
-		   		other.publish(horizontal_lines);
-		   	}
-		if(t_avg > 10*CV_PI/180 and t_avg < 80*CV_PI/180 or t_avg > 100*CV_PI/180)
-		   	continue;
-		if(t_avg < 10*CV_PI/180)
-		{
 		   	v_line[0] = r_avg;
 		   	v_line[1] = t_avg;
 		}
@@ -95,13 +78,30 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 			h_line[0] = r_avg;
 		   	h_line[1] = t_avg;
 		}
-		int L = LDetect(points,v_line,h_line,int(dst.rows/N_SLICE_H),int(dst.cols/N_SLICE_W));
-		if(L)
+		L = LDetect(points,v_line,h_line,int(dst.rows/N_SLICE_H),int(dst.cols/N_SLICE_W));
+		if(t_avg < 10*CV_PI/180)
 		{
-			if(L == -1) ROS_INFO("Left L\t");
-			else 
-				if(L == 1) ROS_INFO("Right L\t");
+		  	vertical_line.rho = r_avg;
+		   	vertical_line.theta = t_avg;		   	
+		   	vertical.publish(vertical_line);
 		}
+		else
+		   	if(t_avg > 80*CV_PI/180 and t_avg<100*CV_PI/180)
+		   	{
+		   		warehouse_interiit::Line temp;
+		   		temp.rho = r_avg;
+		   		temp.theta = t_avg;
+		   		temp.L = L;
+		   		horizontal_lines.lines.push_back(temp);
+		   	}
+		if(t_avg > 10*CV_PI/180 and t_avg < 80*CV_PI/180 or t_avg > 100*CV_PI/180)
+		   	continue;
+		// if(L)
+		// {
+		// 	if(L == -1) ROS_INFO("Left L\t");
+		// 	else 
+		// 		if(L == 1) ROS_INFO("Right L\t");
+		// }
 
 		j = k;                                //update cluster boundary
 
@@ -114,6 +114,12 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 		line(dst, pt1, pt2, Scalar(255,255,255), 2, CV_AA);
 		cluster_index.pop();
 	}
+	warehouse_interiit::Line temp;
+	temp.rho = 0;
+	temp.theta = CV_PI/2;
+	std::reverse(horizontal_lines.lines.begin(),horizontal_lines.lines.end());
+	horizontal_lines.lines.push_back(temp);
+	other.publish(horizontal_lines);
 }
 
 void ClusterLines(ros::NodeHandle nh,Mat &dis,Mat &dst,std::vector<Point> points)

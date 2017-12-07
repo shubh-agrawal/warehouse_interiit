@@ -38,8 +38,8 @@ int main(int argc, char**argv)
 	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
 	ros::Rate rate(10);
 	std::vector<Point> points;
-	namedWindow("original");
-	namedWindow("Point");
+	//namedWindow("original");
+	//namedWindow("Point");
 	namedWindow("Display");
 	while(nh.ok())
 	{
@@ -54,7 +54,7 @@ int main(int argc, char**argv)
 			int n_cluster = 1;
 			int theta = 0, prev_theta = 0;
 			vector<ImagePatch> images(N_SLICE_W*N_SLICE_H);
-			imshow("original", img);
+	//		imshow("original", img);
 			img = RemoveBackground(img, true);
 			images = SlicePart(img, images, N_SLICE_H, N_SLICE_W,points);
 			dst = RepackImages(images,N_SLICE_H,N_SLICE_W);
@@ -69,7 +69,7 @@ int main(int argc, char**argv)
 			cvtColor(dis,dis,CV_BGR2GRAY);
 			ClusterLines(nh,dis,dst,points);
 			imshow("Display",dst);
-			imshow("Point",dis);
+	//		imshow("Point",dis);
 			if(char(waitKey(1)) == 'q')
 				break;
 		}

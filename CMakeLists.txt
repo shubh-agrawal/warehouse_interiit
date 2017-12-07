@@ -1,6 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(warehouse_interiit)
-
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -15,6 +14,7 @@ find_package(catkin REQUIRED COMPONENTS
   tf
 )
 find_package(OpenCV REQUIRED)
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} CMAKE_CURRENT_SOURCE_DIR)
 find_package (ZBar0)
 
 ## System dependencies are found with CMake's conventions
