@@ -97,7 +97,6 @@ int main(int argc, char **argv)
                 if(((IMAGE_HEIGHT/2) - (rho) < difference) && 
                     ((IMAGE_HEIGHT/2) - (rho) > -1*difference)){
                     temp = lines_x.lines[i];
-                    // last_rho = 9999;
                     break;
                 }
             }
@@ -136,6 +135,7 @@ int main(int argc, char **argv)
                 state.data = "Takeoff";
         }
         state_pub.publish(state);
+        alt_set_pub.publish(alt_set);
         rate.sleep();
     }
 
