@@ -262,7 +262,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose frame=''>-1 -11 2.6 0 -0 0</pose>
+      <pose frame=''>-1 -11 2.75 0 -0 0</pose>
     </model>
     <model name='Box2_2'>
       <link name='link'>
@@ -284,7 +284,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose frame=''>-1 -9 2.6 0 -0 0</pose>
+      <pose frame=''>-1 -9 2.75 0 -0 0</pose>
     </model>
     <model name='Box2_3'>
       <link name='link'>
@@ -306,7 +306,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose frame=''>-1 -6.75 2.6 0 -0 0</pose>
+      <pose frame=''>-1 -6.75 2.75 0 -0 0</pose>
     </model>
     <model name='Box2_4'>
       <link name='link'>
@@ -328,7 +328,184 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose frame=''>-1 -4.25 2.6 0 -0 0</pose>
+      <pose frame=''>-1 -4.25 2.75 0 -0 0</pose>
+    </model>
+
+    <model name='QR1_1'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -11 1.4 0 -0 0</pose>
+    </model>
+    <model name='QR1_2'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -9 1.4 0 -0 0</pose>
+    </model>
+    <model name='QR1_3'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -6.75 1.4 0 -0 0</pose>
+    </model>
+    <model name='QR1_4'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -4.25 1.4 0 -0 0</pose>
+    </model>
+    <model name='QR2_1'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -11 2.6 0 -0 0</pose>
+    </model>
+    <model name='QR2_2'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -9 2.6 0 -0 0</pose>
+    </model>
+    <model name='QR2_3'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -6.75 2.6 0 -0 0</pose>
+    </model>
+    <model name='QR2_4'>
+      <link name='link'>
+        <pose frame=''>0 0 0.3125 0 -0 0</pose>
+        <self_collide>0</self_collide>
+        <kinematic>0</kinematic>
+        <gravity>1</gravity>
+        <visual name='visual'>
+          <geometry>
+            <mesh>
+              <uri>model://marker00/meshes/Marker0.dae</uri>
+              <scale>0.5 0.5 0.5</scale>
+            </mesh>
+          </geometry>
+          <pose frame=''>0 0 0 0 -0 0</pose>
+          <cast_shadows>1</cast_shadows>
+          <transparency>0</transparency>
+        </visual>
+      </link>
+      <static>1</static>
+      <allow_auto_disable>1</allow_auto_disable>
+      <pose frame=''>-0.4 -4.25 2.6 0 -0 0</pose>
     </model>
     
     <model name='line'>
