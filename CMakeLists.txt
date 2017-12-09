@@ -132,6 +132,7 @@ add_executable(controller src/controller.cpp)
 add_executable(line_detector src/line.cpp)
 #add_executable(sonar src/sonar.cpp)
 add_executable(barcode_node src/barcode.cpp)
+add_executable(line_in src/line_in.cpp)
 # add_executable(line_detector src/line_detect.cpp)
 
 
@@ -159,6 +160,11 @@ target_link_libraries(controller
 )
 
 target_link_libraries(line_detector
+   ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
+)
+
+target_link_libraries(line_in
    ${catkin_LIBRARIES}
    ${OpenCV_LIBS}
 )
