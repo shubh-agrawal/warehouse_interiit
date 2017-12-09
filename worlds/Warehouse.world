@@ -164,7 +164,7 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>model://big_box3/meshes/big_box_3.dae</uri>
+              <uri>model://big_box3/meshes/big_box_1.dae</uri>
               <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
@@ -186,7 +186,7 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>model://big_box3/meshes/big_box_4.dae</uri>
+              <uri>model://big_box3/meshes/big_box_1.dae</uri>
               <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
@@ -209,7 +209,7 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>model://big_box3/meshes/big_box_1.dae</uri>
+              <uri>model://big_box3/meshes/big_box_3.dae</uri>
               <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
@@ -231,7 +231,7 @@
         <visual name='visual'>
           <geometry>
             <mesh>
-              <uri>model://big_box3/meshes/big_box_2.dae</uri>
+              <uri>model://big_box3/meshes/big_box_4.dae</uri>
               <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
@@ -359,7 +359,7 @@
           <transparency>0</transparency>
           <cast_shadows>1</cast_shadows>
         </visual>
-	<visual name='aux_line4'>
+        <visual name='aux_line4'>
           <pose frame=''>0 3.75 0 0 -0 1.56463</pose>
           <geometry>
             <box>
@@ -376,7 +376,7 @@
           <transparency>0</transparency>
           <cast_shadows>1</cast_shadows>
         </visual>
-  	<visual name='aux_line5'>
+        <visual name='aux_line5'>
           <pose frame=''>7 -6.8 0 0 -0 1.56463</pose>
           <geometry>
             <box>
