@@ -144,7 +144,7 @@ int main(int argc, char **argv)
                     ROS_INFO("Scanning");
                 }
                 else if(ros::Time::now() - scanning_start < ros::Duration(10.0 + (MAX_HEIGHT-MIN_HEIGHT)*25)){
-                    alt_set.data = 0.01;
+                    alt_set.data = MIN_HEIGHT;
                     scan.data = true;
                     barcode_scan.publish(scan);
                     ROS_INFO("Scanning");
