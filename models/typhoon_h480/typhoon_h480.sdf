@@ -485,7 +485,7 @@
       <sensor name="camera" type="camera">
         <pose frame=''>-0.041 0.15 0 0 0 1.5708</pose>
         <camera>
-          <horizontal_fov>0.87266462599</horizontal_fov> <!-- in radians -->
+          <horizontal_fov>1.4</horizontal_fov> <!-- in radians -->
           <image>
             <format>R8G8B8</format>
             <width>640</width>
