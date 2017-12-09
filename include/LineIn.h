@@ -104,7 +104,7 @@ warehouse_interiit::Line PublishHLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f
 
 	//ros:: Publisher vertical = nh.advertise<warehouse_interiit::LineArray >(VERTICAL_TOPIC, 10);
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray >(HORIZONTAL_TOPIC, 15);
-	ros::Subscriber scan_sub = nh.subscribe("code/scan",10, &scanCallBack);	
+	ros::Subscriber scan_sub = nh.subscribe("/edge",10, &scanCallBack);	
 
 	warehouse_interiit::Line vertical_line;
 	warehouse_interiit::LineArray horizontal_lines;
