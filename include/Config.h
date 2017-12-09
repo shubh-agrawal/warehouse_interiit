@@ -22,6 +22,7 @@
 
 //Barcode Constants
 
+#define BAR_CAM "/right_camera/image_raw"
 #define BARCODE_SUB "/usb_cam/image_raw"	//Front Facing Camera Topic
 #define BARCODE_IMG_TOPIC "/code/image"		//Topic to Publish Detected QR/Bar Code Rectangle
 #define QR_TOPIC "/code/qr"			//Publish QR Code Data

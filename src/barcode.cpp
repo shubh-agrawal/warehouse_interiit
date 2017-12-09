@@ -43,7 +43,7 @@ int main(int argc, char **argv) {
 	ros::NodeHandle nh;
     ros::Subscriber scan_sub = nh.subscribe("code/scan",10, &scanCallBack);
 	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
+	image_transport::Subscriber sub = it.subscribe(BAR_CAM, 1, imageCallback);
 	image_transport::Publisher pub = it.advertise(BARCODE_IMG_TOPIC, 1);
 	ros::Publisher qr_pub = nh.advertise<std_msgs::String>(QR_TOPIC, 10);
     ros::Publisher bar_pub = nh.advertise<std_msgs::String>(BAR_TOPIC, 10);
@@ -75,11 +75,11 @@ int main(int argc, char **argv) {
 
             // then adjust the threshold to actually make it binary
             Mat binaryMat;
-            threshold(frame_grayscale, binaryMat, LOW_BINARY_THRESHOLD, 255, CV_THRESH_BINARY);
+            //threshold(frame_grayscale, binaryMat, LOW_BINARY_THRESHOLD, 255, CV_THRESH_BINARY);
             int width = frame_grayscale.cols;
             int height = frame_grayscale.rows;
-            uchar *raw = (uchar *)(binaryMat.data);
-            imshow("Bin",binaryMat);
+            uchar *raw = (uchar *)(frame_grayscale.data);
+            imshow("Bin",frame_grayscale);
             // Wrap image data
             Image image(width, height, "Y800", raw, width * height);
 
