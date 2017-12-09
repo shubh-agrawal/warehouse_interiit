@@ -77,6 +77,7 @@ Published Topics :
 /lines/vertical				#Vertical Detetcted Line 
 /right_camera/image_raw		#Barcode Scanning Side Facing Cam Feed
 /state						#String to tell controller to switch states
+/edge				#Boolean to publish vertical edge line array in alternate algorithm
 ```
 
 #### Custom Messages
