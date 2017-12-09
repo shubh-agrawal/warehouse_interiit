@@ -178,12 +178,18 @@ warehouse_interiit::Line PublishHLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f
 		vertical_line.L = 0;
 	}
 	else{
+		vertical_line.rho = 0;
 		int count = 0;
 		sort(points.begin(),points.end(),sortByX);
-		for (std::vector<Point>::iterator i = points.end(); i != points.begin() and i->x > 5*dst.cols/6; --i)
-		{
-			if(i->y > dst.cols/2 - 2*dst.cols/N_SLICE_W and i->y < dst.cols/2 + 2*dst.cols/N_SLICE_W){
-				vertical_line.rho += i->x;
+		for(int row = dst.rows - 2*dst.rows/N_SLICE_H; row < dst.rows + 2*dst.rows/N_SLICE_H; row++)
+		for (int col = 1; col < dst.cols; col ++){
+			if(dst.at<Vec3b>(col,row)[0] == 0 and 
+				dst.at<Vec3b>(col,row)[1] == 0 and
+				dst.at<Vec3b>(col,row)[2] == 0 and
+				dst.at<Vec3b>(col - 1,row)[0] != 0 and
+				dst.at<Vec3b>(col - 1,row)[1] != 0 and
+				dst.at<Vec3b>(col - 1,row)[2] != 0 ){
+				vertical_line.rho += col;
 				count++;
 			}
 		}
