@@ -15,7 +15,7 @@ find_package(catkin REQUIRED COMPONENTS
 )
 find_package(OpenCV REQUIRED)
 # find_package(wiringPI REQUIRED) #Needed for sonar 
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} CMAKE_CURRENT_SOURCE_DIR)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package (ZBar0)
 
 ## System dependencies are found with CMake's conventions
@@ -130,8 +130,8 @@ include_directories(
 add_executable(strategy src/strategy.cpp)
 add_executable(controller src/controller.cpp)
 add_executable(line_detector src/line.cpp)
-# add_executable(sonar src/sonar.cpp)
-#add_executable(barcode_node src/barcode.cpp)
+#add_executable(sonar src/sonar.cpp)
+add_executable(barcode_node src/barcode.cpp)
 # add_executable(line_detector src/line_detect.cpp)
 
 
@@ -163,12 +163,12 @@ target_link_libraries(line_detector
    ${OpenCV_LIBS}
 )
 
-target_link_libraries(sonar
-   ${catkin_LIBRARIES}
-)
+#target_link_libraries(sonar
+#   ${catkin_LIBRARIES}
+#)
 
-#target_link_libraries(barcode_node
-#    zbar
-#    ${catkin_LIBRARIES}
-#    ${OpenCV_LIBS}
-# )
+target_link_libraries(barcode_node
+    zbar
+    ${catkin_LIBRARIES}
+    ${OpenCV_LIBS}
+ )
