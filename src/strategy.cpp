@@ -12,6 +12,8 @@
 #define WIDTH_X 50
 #define MAX_ERROR_X 75
 #define MAX_HOVER_COUNT 10
+#define MIN_HEIGHT 1.0
+#define MAX_HEIGHT 2.0
 
 using namespace warehouse_interiit;
 
@@ -53,7 +55,7 @@ int main(int argc, char **argv)
     std_msgs::String state;
     Line last_y, last_x, line_x;
     std_msgs::Float32 alt_set;
-    alt_set.data = 1.0;
+    alt_set.data = MIN_HEIGHT;
     bool isHovering = false, isScanning = false, turnFlag = false;
     float error = 999999, difference = WIDTH_X;
     int hover_count = 0;
@@ -93,7 +95,7 @@ int main(int argc, char **argv)
                 scanning_start = ros::Time::now();
                 difference = WIDTH_X;
             }
-            alt_set.data = 1.0;
+            alt_set.data = MIN_HEIGHT;
         }
         else{
             Line temp;
@@ -112,7 +114,7 @@ int main(int argc, char **argv)
                 isHovering = false;
                 hover_count = 0;
                 difference = WIDTH_X;
-                alt_set.data = 1.0;
+                alt_set.data = MIN_HEIGHT;
                 for(int i = 0; i < 5; ++i){
                     state_pub.publish(state);
                     alt_set_pub.publish(alt_set);
@@ -121,61 +123,83 @@ int main(int argc, char **argv)
                 continue;
             }
             else{
+                float delta_t = 0.1;
                 if(ros::Time::now() - scanning_start < ros::Duration(5.0)){
-                    alt_set.data = 1.0;
+                    alt_set.data = MIN_HEIGHT;
                     scan.data = true;
                     barcode_scan.publish(scan);
                     ROS_INFO("Scanning");
                 }
-                else if(ros::Time::now() - scanning_start < ros::Duration(8.0)){
-                    alt_set.data = 1.2;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
+                else if(ros::Time::now() - scanning_start < ros::Duration(5.0 + (MAX_HEIGHT-MIN_HEIGHT)*10)){
+                    for(int i = 0; i <= (MAX_HEIGHT - MIN_HEIGHT)*100; ++i){
+                        if(ros::Time::now() - scanning_start < ros::Duration(5.0 + i*delta_t)){
+                            alt_set.data = MIN_HEIGHT + i/100;
+                            scan.data = true;
+                            barcode_scan.publish(scan);
+                            ROS_INFO("Scanning");
+                        }
+                    }
                 }
-                else if(ros::Time::now() - scanning_start < ros::Duration(12.0)){
-                    alt_set.data = 1.4;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
+                else if(ros::Time::now() - scanning_start < ros::Duration(5.0 + (MAX_HEIGHT-MIN_HEIGHT)*20)){
+                    for(int i = 0; i <= (MAX_HEIGHT - MIN_HEIGHT)*100; ++i){
+                        if(ros::Time::now() - scanning_start < ros::Duration(5.0 + i*delta_t)){
+                            alt_set.data = MAX_HEIGHT - i/100;
+                            scan.data = true;
+                            barcode_scan.publish(scan);
+                            ROS_INFO("Scanning");
+                        }
+                    }
                 }
-                else if(ros::Time::now() - scanning_start < ros::Duration(16.0)){
-                    alt_set.data = 1.6;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(20.0)){
-                    alt_set.data = 1.8;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(24.0)){
-                    alt_set.data = 1.6;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(28.0)){
-                    alt_set.data = 1.4;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(32.0)){
-                    alt_set.data = 1.2;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(36.0)){
-                    alt_set.data = 1.0;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(8.0)){
+                //     alt_set.data = 1.2;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(12.0)){
+                //     alt_set.data = 1.4;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(16.0)){
+                //     alt_set.data = 1.6;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(20.0)){
+                //     alt_set.data = 1.8;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(24.0)){
+                //     alt_set.data = 1.6;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(28.0)){
+                //     alt_set.data = 1.4;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(32.0)){
+                //     alt_set.data = 1.2;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
+                // else if(ros::Time::now() - scanning_start < ros::Duration(36.0)){
+                //     alt_set.data = 1.0;
+                //     scan.data = true;
+                //     barcode_scan.publish(scan);
+                //     ROS_INFO("Scanning");
+                // }
                 else{
+                    alt_set.data = MIN_HEIGHT;
                     scan.data = false;
                     isHovering = false;
                     hover_count = 0;
@@ -183,7 +207,7 @@ int main(int argc, char **argv)
                 }
             }
         }
-        if(current_alti > 1 && line_y.rho!=0){
+        if(current_alti >= (MIN_HEIGHT - 0.2) && line_y.rho!=0){
             state.data = "Follow";
         }
         else
