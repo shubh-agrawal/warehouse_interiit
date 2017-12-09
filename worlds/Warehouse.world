@@ -121,7 +121,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_1.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -131,8 +131,7 @@
       </link>
       <static>1</static>
       <allow_auto_disable>1</allow_auto_disable>
-      <pose frame=''>-1 -11 1.45
-       0 -0 0</pose>
+      <pose frame=''>-1 -11 1.45 0 -0 0</pose>
     </model>
     <model name='Box1_2'>
       <link name='link'>
@@ -144,7 +143,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_2.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -166,7 +165,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_3.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -188,7 +187,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_4.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -211,7 +210,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_1.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -233,7 +232,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_2.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -255,7 +254,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_3.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
@@ -277,7 +276,7 @@
           <geometry>
             <mesh>
               <uri>model://big_box3/meshes/big_box_4.dae</uri>
-              <scale>0.85 0.85 0.85</scale>
+              <scale>0.64 0.64 0.64</scale>
             </mesh>
           </geometry>
           <pose frame=''>0 0 0 0 -0 0</pose>
