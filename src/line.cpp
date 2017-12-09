@@ -36,25 +36,15 @@ int main(int argc, char**argv)
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray>(HORIZONTAL_TOPIC, 10);
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
-	ros::Rate rate(10);
+	ros::Rate rate(15);
 	std::vector<Point> points;
-	//namedWindow("original");
-	//namedWindow("Point");
 	namedWindow("Display");
 	while(nh.ok())
 	{
 		Mat dst;
 		if(!img.empty())
 		{
-			warehouse_interiit::Line vertical_line;
-			warehouse_interiit::LineArray horizontal_lines;
-			queue<int> cluster_index;
-			float x_i, y_i;
-			int zero_index;
-			int n_cluster = 1;
-			int theta = 0, prev_theta = 0;
 			vector<ImagePatch> images(N_SLICE_W*N_SLICE_H);
-	//		imshow("original", img);
 			img = RemoveBackground(img, true);
 			images = SlicePart(img, images, N_SLICE_H, N_SLICE_W,points);
 			dst = RepackImages(images,N_SLICE_H,N_SLICE_W);
@@ -69,7 +59,6 @@ int main(int argc, char**argv)
 			cvtColor(dis,dis,CV_BGR2GRAY);
 			ClusterLines(nh,dis,dst,points);
 			imshow("Display",dst);
-	//		imshow("Point",dis);
 			if(char(waitKey(1)) == 'q')
 				break;
 		}
