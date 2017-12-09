@@ -50,7 +50,7 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray >(HORIZONTAL_TOPIC, 10);
 	warehouse_interiit::Line vertical_line;
 	warehouse_interiit::LineArray horizontal_lines;
-	ros::Rate rate(10);
+	ros::Rate rate(15);
     // Iterate through each cluster  
     Vec2f v_line,h_line;   
     int L; 
