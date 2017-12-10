@@ -1,6 +1,22 @@
 <launch>
+    <param name="kp_height" type="double" value="0.115" />
+    <param name="ki_height" type="double" value="0.01" />
+    <param name="kd_height" type="double" value="1" />
+    <param name="kp_roll" type="double" value="0.001" />
+    <param name="kp_pitch" type="double" value="0.001" />
+
+    <arg name="onboard" default="1"/>
+
+	<arg name="simulation" default="1"/>
+	<arg unless="$(arg simulation)" name="fcu_url" default="/dev/serial/by-id/usb-3D_Robotics_PX4_FMU_v2.x_0-if00:57600" />
+	<arg if="$(arg simulation)" name="fcu_url" default="udp://:14540@192.168.1.36:14557" />
+
+	<include file="$(find warehouse_interiit)/launch/mavros_px4.launch">
+		<arg name="fcu_url" value="$(arg fcu_url)" />
+	</include>
+
     <node name="strategy" pkg="warehouse_interiit" type="strategy" output="screen" />
-    <node name="controller" pkg="warehouse_interiit" type="controller" output="screen" />
-    <node name="line_detector" pkg="warehouse_interiit" type="line_detector" output="screen" />
-    <node name="barcode_node" pkg="warehouse_interiit" type="barcode_node" output="screen" />
+    <node name="controller" pkg="warehouse_interiit" type="controller" />
+    <node if="$(arg onboard)" name="line_detector" pkg="warehouse_interiit" type="line_detector"/>
+    <node name="barcode_node" pkg="warehouse_interiit" type="barcode_node"/>
 </launch>

@@ -1,0 +1,24 @@
+plugin_blacklist:
+# common
+- safety_area
+- 3dr_radio
+- actuator_control
+- imu_pub
+- hil_controls
+- ftp
+- manual_control
+- rc_io
+- setpoint_accel
+- vfr_hud
+- waypoint
+# extras
+- image_pub
+- vibration
+- distance_sensor
+- rangefinder
+- cam_imu_sync
+- distance_sensor
+- px4flow
+- vibration
+plugin_whitelist: []
+#- 'sys_*'
