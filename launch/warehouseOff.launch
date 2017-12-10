@@ -1,5 +1,0 @@
-<launch>
-    <node name="strategy" pkg="warehouse_interiit" type="strategy" output="screen" />
-    <node name="controller" pkg="warehouse_interiit" type="controller" output="screen" />
-    <node name="barcode_node" pkg="warehouse_interiit" type="barcode_node" output="screen" />
-</launch>
