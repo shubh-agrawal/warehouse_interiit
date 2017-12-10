@@ -91,7 +91,6 @@ int main(int argc, char **argv)
                 ++hover_count;
             if(hover_count > MAX_HOVER_COUNT){
                 isHovering = true;
-                // first_hover = true;
                 scanning_start = ros::Time::now();
                 difference = WIDTH_X;
             }
