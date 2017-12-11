@@ -2,6 +2,7 @@
 #include <wiringPi.h>
 #include <ros/ros.h>
 #include <std_msgs/Float32.h>
+#include <sensor_msgs/Range.h>
 using namespace std;
 
 
@@ -11,11 +12,17 @@ int main(int argc, char **argv){
     wiringPiSetup();
     ros::NodeHandle nh;
     ros::Publisher alt_pub = nh.advertise<std_msgs::Float32>("/altitude", 10);
+    ros::Publisher range_pub = nh.advertise<sensor_msgs::Range>("/mavros/distance_sensor/sonar_1_sub")
     ros::Rate rate(20);
     unsigned int timeout = 20000;
     int pin = 7;
     unsigned long int starttime, endtime, watchtime, duration;
     std_msgs::Float32 distance;
+    sensor_msgs::Range range;
+    range.radiation_type  = range.ULTRASOUND;
+    range.field_of_view = 0.261799;
+    range.min_range = 0.05;
+    range.max_range = 3.0;
     while(ros::ok()){
         pinMode(pin, OUTPUT);
         digitalWrite(pin, 0);
@@ -39,16 +46,18 @@ int main(int argc, char **argv){
                 endtime = micros();
                 if(endtime - watchtime > timeout){
                     ROS_INFO("timeout");
-		    goodread=false;
+                    goodread=false;
                 }
             }
         }
 
         if(goodread){
             duration = endtime - starttime;
-            distance.data = (duration*34.0)/2000.0;
-            ROS_INFO("distance: %f", distance.data);
-	    alt_pub.publish(distance);
+            distance.data = (duration*34.0)/200000.0;
+            range.range = distance.data;
+            // ROS_INFO("distance: %f", distance.data);
+            alt_pub.publish(distance);
+            range_pub.publish(range);
         }
     ros::spinOnce();
     rate.sleep();
