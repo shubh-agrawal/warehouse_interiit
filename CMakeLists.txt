@@ -129,9 +129,10 @@ include_directories(
 
 
 add_executable(strategy src/strategy.cpp)
+add_executable(land src/square.cpp)
 add_executable(controller src/controller.cpp)
 add_executable(line_detector src/line.cpp)
-add_executable(sonar src/sonar.cpp)
+#add_executable(sonar src/sonar.cpp)
 add_executable(barcode_node src/barcode.cpp)
 add_executable(line_in src/line_in.cpp)
 # add_executable(line_detector src/line_detect.cpp)
@@ -170,10 +171,15 @@ target_link_libraries(line_in
    ${OpenCV_LIBS}
 )
 
-target_link_libraries(sonar
-   wiringPi
+target_link_libraries(land
    ${catkin_LIBRARIES}
+   ${OpenCV_LIBS}
 )
+
+#target_link_libraries(sonar
+#   wiringPi
+#   ${catkin_LIBRARIES}
+#)
 
 target_link_libraries(barcode_node
     zbar
