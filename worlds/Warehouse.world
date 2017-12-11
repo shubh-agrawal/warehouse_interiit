@@ -34,6 +34,7 @@
       <heading_deg>0</heading_deg>
     </spherical_coordinates>
 
+
     <model name='asphalt_plane'>
       <static>1</static>
       <link name='link'>
@@ -177,6 +178,7 @@
       <allow_auto_disable>1</allow_auto_disable>
       <pose frame=''>-1 -6.75 1.45 0 -0 0</pose>
     </model>
+
     <model name='Box1_4'>
       <link name='link'>
         <pose frame=''>0 0 0.3125 0 -0 0</pose>
@@ -376,6 +378,7 @@
           <transparency>0</transparency>
           <cast_shadows>1</cast_shadows>
         </visual>
+        
         <visual name='aux_line5'>
           <pose frame=''>5 -6.8 0 0 -0 1.56463</pose>
           <geometry>
@@ -393,6 +396,7 @@
           <transparency>0</transparency>
           <cast_shadows>1</cast_shadows>
         </visual>
+
         <visual name='square'>
           <pose frame=''>10 -6.8 0 0 -0 0</pose>
           <geometry>
@@ -402,8 +406,8 @@
           </geometry>
           <material>
             <lighting>1</lighting>
-            <ambient>1 1 0 1</ambient>
-            <diffuse>1 1 0 1</diffuse>
+            <ambient>1 0 0 1</ambient>
+            <diffuse>1 0 0 1</diffuse>
             <specular>0.1 0.1 0.1 1</specular>
             <emissive>0 0 0 0</emissive>
           </material>
