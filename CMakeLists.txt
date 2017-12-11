@@ -17,7 +17,8 @@ find_package(OpenCV REQUIRED)
 # find_package(wiringPI REQUIRED) #Needed for sonar 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package (ZBar0)
-
+#set(CMAKE_CXX_FLAGS "-lwiringPi")
+#find_package(wiringPi)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
 
@@ -108,10 +109,10 @@ generate_messages(
 ## CATKIN_DEPENDS: catkin_packages dependent projects also need
 ## DEPENDS: system dependencies of this project that dependent projects also need
 catkin_package(
-  INCLUDE_DIRS include
-#  LIBRARIES warehouse_interiit
- CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge message_runtime
-#  DEPENDS wiringPI
+  INCLUDE_DIRS include 
+  #LIBRARIES warehouse_interiit
+  CATKIN_DEPENDS roscpp rospy std_msgs cv_bridge message_runtime
+  #DEPENDS wiringPi
 )
 
 ###########
@@ -130,7 +131,7 @@ include_directories(
 add_executable(strategy src/strategy.cpp)
 add_executable(controller src/controller.cpp)
 add_executable(line_detector src/line.cpp)
-#add_executable(sonar src/sonar.cpp)
+add_executable(sonar src/sonar.cpp)
 add_executable(barcode_node src/barcode.cpp)
 add_executable(line_in src/line_in.cpp)
 # add_executable(line_detector src/line_detect.cpp)
@@ -169,12 +170,13 @@ target_link_libraries(line_in
    ${OpenCV_LIBS}
 )
 
-#target_link_libraries(sonar
-#   ${catkin_LIBRARIES}
-#)
+target_link_libraries(sonar
+   wiringPi
+   ${catkin_LIBRARIES}
+)
 
 target_link_libraries(barcode_node
     zbar
     ${catkin_LIBRARIES}
     ${OpenCV_LIBS}
- )
+)

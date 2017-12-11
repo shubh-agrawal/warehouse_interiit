@@ -1,14 +1,17 @@
 #include <iostream>
 #include <wiringPi.h>
 #include <ros/ros.h>
-#include <std_msgs/Float32>
+#include <std_msgs/Float32.h>
 using namespace std;
+
 
 int main(int argc, char **argv){
     ros::init(argc, argv, "sonar_node");
+    setenv("WIRINGPI_GPIOMEM", "1", 1);
     wiringPiSetup();
     ros::NodeHandle nh;
     ros::Publisher alt_pub = nh.advertise<std_msgs::Float32>("/altitude", 10);
+    ros::Rate rate(20);
     unsigned int timeout = 20000;
     int pin = 7;
     unsigned long int starttime, endtime, watchtime, duration;
@@ -35,7 +38,8 @@ int main(int argc, char **argv){
             while(digitalRead(pin) && goodread){
                 endtime = micros();
                 if(endtime - watchtime > timeout){
-                    goodread=false;
+                    ROS_INFO("timeout");
+		    goodread=false;
                 }
             }
         }
@@ -44,7 +48,10 @@ int main(int argc, char **argv){
             duration = endtime - starttime;
             distance.data = (duration*34.0)/2000.0;
             ROS_INFO("distance: %f", distance.data);
+	    alt_pub.publish(distance);
         }
+    ros::spinOnce();
+    rate.sleep();
     }
 
     return 0;
