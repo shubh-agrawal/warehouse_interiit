@@ -78,6 +78,8 @@ Published Topics :
 /right_camera/image_raw		#Barcode Scanning Side Facing Cam Feed
 /state						#String to tell controller to switch states
 /edge				#Boolean to publish vertical edge line array in alternate algorithm
+/square/vertical		#Publishes vertical line from centre of the square landing area
+/square/horizontal		#Publishes horizontal line from centre of the square landing area
 ```
 
 #### Custom Messages

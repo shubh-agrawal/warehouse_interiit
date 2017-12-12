@@ -21,16 +21,16 @@
 #define MAX_ANGLE 0.1 //Maximum roll and pitch value
 #define PI 3.14159
 
-#define kpH 0.115
-#define kiH 0.002
-#define kdH 1
+// #define kpH 0.115
+// #define kiH 0.002
+// #define kdH 1
 
-#define kpR 0.001
-#define kiR 0.0
+// #define kpR 0.001
+// #define kiR 0.0
 #define kdR 0.0
 
-#define kpP 0.001
-#define kiP 0.000000
+// #define kpP 0.001
+#define kiP 0.0
 #define kdP 0.0
 
 using namespace warehouse_interiit;
@@ -106,6 +106,45 @@ int main(int argc, char **argv)
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
+    double kpH, kiH, kdH, kpP, kpR, min_thrust = 0.2;
+
+    if (nh.getParam("kp_height", kpH)){
+      ROS_INFO("Got param: %f", kpH);
+    }
+    else{
+      ROS_ERROR("Failed to get param 'kp_height'");
+    }
+    if (nh.getParam("ki_height", kiH)){
+      ROS_INFO("Got param: %f", kiH);
+    }
+    else{
+      ROS_ERROR("Failed to get param 'ki_height'");
+    }
+    if (nh.getParam("kd_height", kdH)){
+      ROS_INFO("Got param: %f", kdH);
+    }
+    else{
+      ROS_ERROR("Failed to get param 'kd_height'");
+    }
+    if (nh.getParam("kp_roll", kpR)){
+      ROS_INFO("Got param: %f", kpR);
+    }
+    else{
+      ROS_ERROR("Failed to get param 'kp_roll'");
+    }
+    if (nh.getParam("kp_pitch", kpP)){
+      ROS_INFO("Got param: %f", kpP);
+    }
+    else{
+      ROS_ERROR("Failed to get param 'kp_pitch'");
+    }
+    if (nh.getParam("min_thrust", min_thrust)){
+      ROS_INFO("Got param: %f", min_thrust);
+    }
+    else{
+      ROS_ERROR("Failed to get param 'kp_pitch'");
+    }
+
     // wait for FCU connection
     while(ros::ok() && current_fcstate.connected){
         ros::spinOnce();
@@ -137,11 +176,11 @@ int main(int argc, char **argv)
         rate.sleep();
     }
 
-    mavros_msgs::SetMode offb_set_mode;
-    offb_set_mode.request.custom_mode = "OFFBOARD";
+    // mavros_msgs::SetMode offb_set_mode;
+    // offb_set_mode.request.custom_mode = "OFFBOARD";
 
-    mavros_msgs::CommandBool arm_cmd;
-    arm_cmd.request.value = true;
+    // mavros_msgs::CommandBool arm_cmd;
+    // arm_cmd.request.value = true;
 
     ros::Time last_request = ros::Time::now();
     float errorH = 0, sum_errorH = 0, last_errorH = 0,
@@ -151,23 +190,23 @@ int main(int argc, char **argv)
     yaw = initial_yaw;
     while(ros::ok()){
         ros::spinOnce();
-        if( current_fcstate.mode != "OFFBOARD" &&
-            (ros::Time::now() - last_request > ros::Duration(5.0))){
-            if( set_mode_client.call(offb_set_mode) &&
-                offb_set_mode.response.mode_sent){
-                ROS_INFO("Offboard enabled");
-            }
-            last_request = ros::Time::now();
-        } else {
-            if( !current_fcstate.armed &&
-                (ros::Time::now() - last_request > ros::Duration(5.0))){
-                if( arming_client.call(arm_cmd) &&
-                    arm_cmd.response.success){
-                    ROS_INFO("Vehicle armed");
-                }
-                last_request = ros::Time::now();
-            }
-        }
+        // if( current_fcstate.mode != "OFFBOARD" &&
+        //     (ros::Time::now() - last_request > ros::Duration(5.0))){
+        //     if( set_mode_client.call(offb_set_mode) &&
+        //         offb_set_mode.response.mode_sent){
+        //         ROS_INFO("Offboard enabled");
+        //     }
+        //     last_request = ros::Time::now();
+        // } else {
+        //     if( !current_fcstate.armed &&
+        //         (ros::Time::now() - last_request > ros::Duration(5.0))){
+        //         if( arming_client.call(arm_cmd) &&
+        //             arm_cmd.response.success){
+        //             ROS_INFO("Vehicle armed");
+        //         }
+        //         last_request = ros::Time::now();
+        //     }
+        // }
 
         if(current_state == "Turn_Left"){
             yaw = initial_yaw + PI/2;
@@ -210,13 +249,13 @@ int main(int argc, char **argv)
         // Runs in both Takeoff and Follow mode hor height control
         if(current_state != "Land"){
             errorH = set_alt - current_alti;
-            if(errorH < 0.5 && errorH > -0.5)
+            if(current_alti >= 0.4)
                 sum_errorH += errorH;
-            thrust.thrust = 0.5 + kpH*errorH + kdH*(errorH-last_errorH) + kiH*sum_errorH;
-            if(thrust.thrust > 1)
-                thrust.thrust = 1;
-            else if(thrust.thrust < 0)
-                thrust.thrust = 0;
+            thrust.thrust = min_thrust + kpH*errorH + kdH*(errorH-last_errorH) + kiH*sum_errorH;
+            if(thrust.thrust > min_thrust + 0.2)
+                thrust.thrust = min_thrust + 0.2;
+            else if(thrust.thrust < min_thrust - 0.1)
+                thrust.thrust = min_thrust - 0.1;
             thrust_pub.publish(thrust);
             last_errorH = errorH;
         }
@@ -224,7 +263,7 @@ int main(int argc, char **argv)
         else{
             thrust.thrust = 0.2;
         }
-        ROS_INFO("Roll: %f Pitch: %f Yaw: %f", roll, pitch, yaw*180/PI);
+        //ROS_INFO("Roll: %f Pitch: %f Yaw: %f", roll, pitch, yaw*180/PI);
         pose.header.stamp = ros::Time::now();
         thrust.header.stamp = ros::Time::now();
         att_pub.publish(pose);
