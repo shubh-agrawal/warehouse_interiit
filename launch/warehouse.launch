@@ -7,7 +7,7 @@
     <param name="min_thrust" type="double" value="0.25" />
     <arg name="onboard" default="0"/>
 
-    <arg name="simulation" default="1"/>
+    <arg name="simulation" default="0"/>
     <arg unless="$(arg simulation)" name="fcu_url" default="/dev/serial/by-id/usb-3D_Robotics_PX4_FMU_v2.x_0-if00:57600" />
     <arg if="$(arg simulation)" name="fcu_url" default="udp://:14540@192.168.1.36:14557" />
 

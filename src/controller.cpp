@@ -3,7 +3,6 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
-
 #include <geometry_msgs/PoseStamped.h>
 
 #include <mavros_msgs/CommandBool.h>
@@ -52,8 +51,8 @@ void state_cb(const std_msgs::String::ConstPtr& msg){
     current_state = msg->data;
 }
 
-void alt_cb(const mavros_msgs::Altitude::ConstPtr& msg){
-     current_alti = msg->local;
+void alt_cb(const std_msgs::Float32::ConstPtr& msg){
+     current_alti = msg->data;
 }
 
 void alt_set_cb(const std_msgs::Float32::ConstPtr& msg){
@@ -61,7 +60,7 @@ void alt_set_cb(const std_msgs::Float32::ConstPtr& msg){
 }
 
 void heading_cb(const std_msgs::Float64::ConstPtr& msg){
-    current_heading = (msg->data + 90)*PI/180.0;
+    current_heading = (msg->data)*PI/180.0;
 }
 
 void x_cb(const Line::ConstPtr& msg){
@@ -82,8 +81,8 @@ int main(int argc, char **argv)
 
     ros::Subscriber state_sub = nh.subscribe<std_msgs::String>
             ("state", 5, state_cb);
-    ros::Subscriber alt_sub = nh.subscribe<mavros_msgs::Altitude>
-            ("mavros/altitude", 5, alt_cb);
+    ros::Subscriber alt_sub = nh.subscribe<std_msgs::Float32>
+            ("/altitude", 5, alt_cb);
     ros::Subscriber alt_set_sub = nh.subscribe<std_msgs::Float32>
             ("altitude_setpoint", 5, alt_set_cb);
     ros::Subscriber x_sub = nh.subscribe<Line>
@@ -208,6 +207,7 @@ int main(int argc, char **argv)
         //     }
         // }
 
+
         if(current_state == "Turn_Left"){
             yaw = initial_yaw + PI/2;
             if(yaw > 2*PI)
@@ -249,7 +249,7 @@ int main(int argc, char **argv)
         // Runs in both Takeoff and Follow mode hor height control
         if(current_state != "Land"){
             errorH = set_alt - current_alti;
-            if(current_alti >= 0.4)
+            if(current_alti >= 0.25)
                 sum_errorH += errorH;
             thrust.thrust = min_thrust + kpH*errorH + kdH*(errorH-last_errorH) + kiH*sum_errorH;
             if(thrust.thrust > min_thrust + 0.2)

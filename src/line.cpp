@@ -4,12 +4,14 @@
 #include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
 #include <vector>
+
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
 #include "warehouse_interiit/Line.h"
 #include "warehouse_interiit/LineArray.h"
 #include "LineDetect.h"
+
 
 using namespace std;
 using namespace cv;
@@ -36,9 +38,11 @@ int main(int argc, char**argv)
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray>(HORIZONTAL_TOPIC, 10);
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
+	image_transport::Publisher line_pub = it.advertise("/segmented_line", 1);
 	ros::Rate rate(15);
 	std::vector<Point> points;
-	namedWindow("Display");
+	//namedWindow("Display");
+	sensor_msgs::ImagePtr line_msg;
 	while(nh.ok())
 	{
 		Mat dst;
@@ -58,7 +62,9 @@ int main(int argc, char**argv)
 			}
 			cvtColor(dis,dis,CV_BGR2GRAY);
 			ClusterLines(nh,dis,dst,points);
-			imshow("Display",dst);
+			line_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", dst).toImageMsg();
+			line_pub.publish(line_msg);
+			//imshow("Display",dst);
 			if(char(waitKey(1)) == 'q')
 				break;
 		}
