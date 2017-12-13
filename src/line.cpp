@@ -37,7 +37,7 @@ int main(int argc, char**argv)
 	ros:: Publisher vertical = nh.advertise<warehouse_interiit::Line>(VERTICAL_TOPIC, 10);
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray>(HORIZONTAL_TOPIC, 10);
 	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
+	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback, ros::VoidPtr(), image_transport::TransportHints("compressed"));
 	image_transport::Publisher line_pub = it.advertise("/segmented_line", 1);
 	ros::Rate rate(15);
 	std::vector<Point> points;
