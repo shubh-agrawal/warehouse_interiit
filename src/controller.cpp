@@ -157,13 +157,13 @@ int main(int argc, char **argv)
 
         if(current_state == "Turn_Left"){
             yaw = initial_yaw + 90.0;
-            if(yaw > 360)
-                yaw = yaw - 360;
+            if(yaw > 180)
+                yaw = yaw - 180;
         }
         else if(current_state == "Turn_Right"){
             yaw = initial_yaw - 90;
-            if(yaw < 0)
-                yaw = yaw + 360.0;
+            if(yaw < -180)
+                yaw = yaw + 180.0;
         }
 
         // Follow mode: Follows line or hover at a node.
