@@ -2,7 +2,7 @@
 #include <std_msgs/Bool.h>
 #include <std_msgs/Float32.h>
 #include <std_msgs/String.h>
-#include <mavros_msgs/Altitude.h>
+#include <ardrone_autonomy/Navdata.h>
 #include <warehouse_interiit/Line.h>
 #include <warehouse_interiit/LineArray.h>
 #include "Config.h"
@@ -21,8 +21,10 @@ float current_alti;
 Line line_y;
 LineArray lines_x;
 
-void alt_cb(const mavros_msgs::Altitude::ConstPtr& msg){
-    current_alti = msg->local;
+ardrone_autonomy::Navdata navdata;
+void navdata_cb(const ardrone_autonomy::Navdata::ConstPtr& msg){
+    navdata = *msg;
+    current_alti = (navdata->altd)/1000.0;
 }
 void x_cb(const LineArray::ConstPtr& msg){
     lines_x = *msg;
@@ -42,16 +44,14 @@ int main(int argc, char **argv)
     ros::Publisher y_pub = nh.advertise<Line>("feedback/vertical", 10);
     ros::Publisher alt_set_pub = nh.advertise<std_msgs::Float32>("altitude_setpoint", 10);
     ros::Publisher barcode_scan = nh.advertise<std_msgs::Bool>("code/scan", 100);
-    ros::Subscriber alt_sub = nh.subscribe<mavros_msgs::Altitude>
-            ("mavros/altitude", 5, alt_cb);
+    ros::Subscriber navdata_sub = nh.subscribe<ardrone_autonomy::Navdata>
+            ("ardrone/navdata", 5, nav_cb);
     ros::Subscriber x_sub = nh.subscribe<LineArray>
             ("lines/horizontal", 5, x_cb);
     ros::Subscriber y_sub = nh.subscribe<Line>
             ("lines/vertical", 5, y_cb);
 
     ros::Rate rate(20);
-    bool first_hover;
-    float hover_rho;
     std_msgs::String state;
     Line last_y, last_x, line_x;
     std_msgs::Float32 alt_set;
