@@ -4,6 +4,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
   std_msgs
+  std_srvs
   image_geometry
   geometry_msgs
   mavros_msgs
@@ -131,7 +132,7 @@ add_executable(controller src/controller.cpp)
 add_executable(line_detector src/line.cpp)
 add_executable(barcode_node src/barcode.cpp)
 add_executable(line_in src/line_in.cpp)
-
+add_executable(testit src/test.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -153,6 +154,10 @@ target_link_libraries(strategy
 )
 
 target_link_libraries(controller
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(testit
    ${catkin_LIBRARIES}
 )
 
