@@ -24,7 +24,7 @@ LineArray lines_x;
 ardrone_autonomy::Navdata navdata;
 void navdata_cb(const ardrone_autonomy::Navdata::ConstPtr& msg){
     navdata = *msg;
-    current_alti = (navdata->altd)/1000.0;
+    current_alti = (navdata.altd)/1000.0;
 }
 void x_cb(const LineArray::ConstPtr& msg){
     lines_x = *msg;
@@ -45,7 +45,7 @@ int main(int argc, char **argv)
     ros::Publisher alt_set_pub = nh.advertise<std_msgs::Float32>("altitude_setpoint", 10);
     ros::Publisher barcode_scan = nh.advertise<std_msgs::Bool>("code/scan", 100);
     ros::Subscriber navdata_sub = nh.subscribe<ardrone_autonomy::Navdata>
-            ("ardrone/navdata", 5, nav_cb);
+            ("ardrone/navdata", 5, navdata_cb);
     ros::Subscriber x_sub = nh.subscribe<LineArray>
             ("lines/horizontal", 5, x_cb);
     ros::Subscriber y_sub = nh.subscribe<Line>

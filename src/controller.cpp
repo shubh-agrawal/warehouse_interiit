@@ -4,7 +4,7 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/Float64.h>
 #include <std_msgs/String.h>
-#include <geometry_msgs/PoseStamped.h>
+#include <geometry_msgs/Twist.h>
 
 #include <ardrone_autonomy/Navdata.h>
 
@@ -43,8 +43,8 @@ std_msgs::Empty empty;
 
 void navdata_cb(const ardrone_autonomy::Navdata::ConstPtr& msg){
     navdata = *msg;
-    current_alti = (navdata->altd)/1000.0;
-    current_heading = navdata->rotZ;
+    current_alti = (navdata.altd)/1000.0;
+    current_heading = navdata.rotZ;
 }
 
 void state_cb(const std_msgs::String::ConstPtr& msg){
@@ -94,7 +94,7 @@ int main(int argc, char **argv)
     //the setpoint publishing rate MUST be faster than 2Hz
     ros::Rate rate(20.0);
 
-    double kpH, kiH, kdH, kpX, kpY;
+    double kpH, kiH, kdH, kpX, kiX, kdX, kpY, kiY, kdY, kpT, kiT, kdT;
 
     if (nh.getParam("kp_height", kpH)){
       ROS_INFO("Got param: %f", kpH);
@@ -150,8 +150,8 @@ int main(int argc, char **argv)
           errorX = 0, sum_errorX = 0, last_errorX = 0,
           errorY = 0, sum_errorY = 0, last_errorY = 0,
           errorT = 0, sum_errorT = 0, last_errorT = 0;
-    initial_yaw = current_heading;
-    yaw = initial_yaw;
+    float initial_yaw = current_heading;
+    float yaw = initial_yaw;
     while(ros::ok()){
         ros::spinOnce();
 

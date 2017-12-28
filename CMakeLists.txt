@@ -12,8 +12,10 @@ find_package(catkin REQUIRED COMPONENTS
   image_transport
   message_generation
   tf
+  ardrone_autonomy
 )
 find_package(OpenCV REQUIRED)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_LIST_DIR}/cmake")
 find_package (ZBar0)
 ## System dependencies are found with CMake's conventions
 # find_package(Boost REQUIRED COMPONENTS system)
