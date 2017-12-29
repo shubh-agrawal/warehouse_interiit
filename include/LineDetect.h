@@ -58,7 +58,6 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
     while(!cluster_index.empty())
     {
     	ros::spinOnce();
-		rate.sleep();
 		int k = cluster_index.front();          //cluster boundary
 		int size = k-j;                         //number of line in cluster
 		float r_avg = 0.0, t_avg = 0.0;
@@ -118,8 +117,9 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 	temp.rho = 0;
 	temp.theta = CV_PI/2;
 	std::reverse(horizontal_lines.lines.begin(),horizontal_lines.lines.end());
-	horizontal_lines.lines.push_back(temp);
-	other.publish(horizontal_lines);
+	// horizontal_lines.lines.push_back(temp);
+	if(horizontal_lines.lines.size() > 0)
+		other.publish(horizontal_lines);
 }
 
 void ClusterLines(ros::NodeHandle nh,Mat &dis,Mat &dst,std::vector<Point> points)

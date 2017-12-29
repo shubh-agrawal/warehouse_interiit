@@ -17,12 +17,13 @@ using namespace std;
 using namespace cv;
 
 Mat img;
-
+bool newImage;
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
     img = cv_bridge::toCvShare(msg, "bgr8")->image.clone();
+    newImage = true;
   }
   catch (cv_bridge::Exception& e)
   {
@@ -43,12 +44,15 @@ int main(int argc, char**argv)
 	std::vector<Point> points;
 	//namedWindow("Display");
 	sensor_msgs::ImagePtr line_msg;
+	newImage = true;
 	while(nh.ok())
 	{
 		Mat dst;
-		if(!img.empty())
+		if(!img.empty() && newImage)
 		{
 			vector<ImagePatch> images(N_SLICE_W*N_SLICE_H);
+			img = img.t();
+			cv::flip(img, img, 0);
 			img = RemoveBackground(img, true);
 			images = SlicePart(img, images, N_SLICE_H, N_SLICE_W,points);
 			dst = RepackImages(images,N_SLICE_H,N_SLICE_W);
@@ -64,12 +68,12 @@ int main(int argc, char**argv)
 			ClusterLines(nh,dis,dst,points);
 			line_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", dst).toImageMsg();
 			line_pub.publish(line_msg);
-			//imshow("Display",dst);
+			imshow("Display",dst);
 			if(char(waitKey(1)) == 'q')
 				break;
+			newImage = false;
 		}
 		ros::spinOnce();
-		rate.sleep();
 	}
 	return 0;
 }

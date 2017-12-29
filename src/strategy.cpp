@@ -7,7 +7,7 @@
 #include <warehouse_interiit/LineArray.h>
 #include "Config.h"
 
-#define IMAGE_HEIGHT 480
+#define IMAGE_HEIGHT 360
 #define IMAGE_WIDTH 640
 #define WIDTH_X 50
 #define MAX_ERROR_X 75
@@ -74,88 +74,88 @@ int main(int argc, char **argv)
         //Horizontal line preprocess
         if (!isHovering){
             for(int i = 0; i < lines_x.lines.size(); ++i){
-                if((IMAGE_HEIGHT/2) - (lines_x.lines[i].rho) < difference)
-                    continue;
-                else{
-                    last_rho = lines_x.lines[i].rho;
+                // if((IMAGE_HEIGHT/2) - (lines_x.lines[i].rho) < difference)
+                //     continue;
+                // else{
+                    // last_rho = lines_x.lines[i].rho;
                     x_pub.publish(lines_x.lines[i]);
-                    error = IMAGE_HEIGHT/2 - last_rho;
+                    // error = IMAGE_HEIGHT/2 - last_rho;
                     break;
-                }
+                // }
             }
             ROS_INFO("error: %f, difference: %f", error, difference);
-            if(error < MAX_ERROR_X){
-                difference = -1*WIDTH_X;
-            }
-            if(error<WIDTH_X && error>-WIDTH_X)
-                ++hover_count;
-            if(hover_count > MAX_HOVER_COUNT){
-                isHovering = true;
-                scanning_start = ros::Time::now();
-                difference = WIDTH_X;
-            }
-            alt_set.data = MIN_HEIGHT;
-        }
-        else{
-            Line temp;
-            for(int i = 0; i < lines_x.lines.size(); ++i){
-                float rho = lines_x.lines[i].rho;
-                if(fabs(last_rho - rho) < 2*difference){
-                    temp = lines_x.lines[i];
-                    last_rho = temp.rho;
-                    break;
-                }
-            }
-            x_pub.publish(temp);
-            if(temp.L){
-                state.data = (temp.L > 0)?"Turn_Right":"Turn_Left";
-                scan.data = false;
-                isHovering = false;
-                hover_count = 0;
-                difference = WIDTH_X;
-                alt_set.data = MIN_HEIGHT;
-                for(int i = 0; i < 5; ++i){
-                    state_pub.publish(state);
-                    alt_set_pub.publish(alt_set);
-                    ros::Duration(0.1).sleep();
-                }
-                continue;
-            }
-            else{
-                if(ros::Time::now() - scanning_start < ros::Duration(10.0)){
-                    alt_set.data = MIN_HEIGHT;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(10.0 + (MAX_HEIGHT-MIN_HEIGHT)*10)){
-                    if(alt_set.data < MAX_HEIGHT)
-                        alt_set.data += 0.01;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(10.0 + (MAX_HEIGHT-MIN_HEIGHT)*20)){
-                    if(alt_set.data > MIN_HEIGHT)
-                        alt_set.data -= 0.01;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else if(ros::Time::now() - scanning_start < ros::Duration(10.0 + (MAX_HEIGHT-MIN_HEIGHT)*25)){
-                    alt_set.data = MIN_HEIGHT;
-                    scan.data = true;
-                    barcode_scan.publish(scan);
-                    ROS_INFO("Scanning");
-                }
-                else{
-                    alt_set.data = MIN_HEIGHT;
-                    scan.data = false;
-                    isHovering = false;
-                    hover_count = 0;
-                    difference = WIDTH_X;
-                }
-            }
+        //     if(error < MAX_ERROR_X){
+        //         difference = -1*WIDTH_X;
+        //     }
+        //     if(error<WIDTH_X && error>-WIDTH_X)
+        //         ++hover_count;
+        //     if(hover_count > MAX_HOVER_COUNT){
+        //         isHovering = true;
+        //         scanning_start = ros::Time::now();
+        //         difference = WIDTH_X;
+        //     }
+        //     alt_set.data = MIN_HEIGHT;
+        // }
+        // else{
+        //     Line temp;
+        //     for(int i = 0; i < lines_x.lines.size(); ++i){
+        //         float rho = lines_x.lines[i].rho;
+        //         if(fabs(last_rho - rho) < 2*difference){
+        //             temp = lines_x.lines[i];
+        //             last_rho = temp.rho;
+        //             break;
+        //         }
+        //     }
+        //     x_pub.publish(temp);
+            // if(temp.L){
+            //     state.data = (temp.L > 0)?"Turn_Right":"Turn_Left";
+            //     scan.data = false;
+            //     isHovering = false;
+            //     hover_count = 0;
+            //     difference = WIDTH_X;
+            //     alt_set.data = MIN_HEIGHT;
+            //     for(int i = 0; i < 5; ++i){
+            //         state_pub.publish(state);
+            //         alt_set_pub.publish(alt_set);
+            //         ros::Duration(0.1).sleep();
+            //     }
+            //     continue;
+            // }
+            // else{
+            //     if(ros::Time::now() - scanning_start < ros::Duration(10.0)){
+            //         alt_set.data = MIN_HEIGHT;
+            //         scan.data = true;
+            //         barcode_scan.publish(scan);
+            //         ROS_INFO("Scanning");
+            //     }
+            //     else if(ros::Time::now() - scanning_start < ros::Duration(10.0 + (MAX_HEIGHT-MIN_HEIGHT)*10)){
+            //         if(alt_set.data < MAX_HEIGHT)
+            //             alt_set.data += 0.01;
+            //         scan.data = true;
+            //         barcode_scan.publish(scan);
+            //         ROS_INFO("Scanning");
+            //     }
+            //     else if(ros::Time::now() - scanning_start < ros::Duration(10.0 + (MAX_HEIGHT-MIN_HEIGHT)*20)){
+            //         if(alt_set.data > MIN_HEIGHT)
+            //             alt_set.data -= 0.01;
+            //         scan.data = true;
+            //         barcode_scan.publish(scan);
+            //         ROS_INFO("Scanning");
+            //     }
+            //     else if(ros::Time::now() - scanning_start < ros::Duration(10.0 + (MAX_HEIGHT-MIN_HEIGHT)*25)){
+            //         alt_set.data = MIN_HEIGHT;
+            //         scan.data = true;
+            //         barcode_scan.publish(scan);
+            //         ROS_INFO("Scanning");
+            //     }
+            //     else{
+            //         alt_set.data = MIN_HEIGHT;
+            //         scan.data = false;
+            //         isHovering = false;
+            //         hover_count = 0;
+            //         difference = WIDTH_X;
+            //     }
+            // }
         }
         if(current_alti >= (MIN_HEIGHT - 0.2) && line_y.rho!=0){
             state.data = "Follow";
