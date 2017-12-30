@@ -14,17 +14,33 @@
 #define MAX_HOVER_COUNT 10
 #define MIN_HEIGHT 1.0
 #define MAX_HEIGHT 1.8
+#define CAMERA_VAR_X 15
+#define CAMERA_VAR_Y 15
+#define MOTION_VAR_X 30
+#define MOTION_VAR_Y 30
 
+#define PI 3.14159
 using namespace warehouse_interiit;
 
 float current_alti;
 Line line_y;
 LineArray lines_x;
 
+float x, var_x, y, var_y;
+ last_t, delta_t;
 ardrone_autonomy::Navdata navdata;
 void navdata_cb(const ardrone_autonomy::Navdata::ConstPtr& msg){
     navdata = *msg;
     current_alti = (navdata.altd)/1000.0;
+    u = 0;
+    if(last_t > 100000.0){
+        u = (navdata.ax)*rotY*PI*delta_t*(navdata.tm - last_t)/360.0;
+        ROS_INFO("u %f", u);
+    }
+    delta_t = navdata.tm - last_t;
+    last_t = navdata.tm;
+    y = y + u;
+    var_y = var_y + MOTION_VAR_Y;
 }
 void x_cb(const LineArray::ConstPtr& msg){
     lines_x = *msg;
@@ -32,6 +48,9 @@ void x_cb(const LineArray::ConstPtr& msg){
 
 void y_cb(const Line::ConstPtr& msg){
     line_y = *msg;
+    y = (y*CAMERA_VAR_Y + line_y.rho*var_y)/(var_y + CAMERA_VAR_Y);
+    var_y = 1/((1/var_y) + (1/CAMERA_VAR_Y));
+    // line_y.rho = y;
 }
 
 int main(int argc, char **argv)
@@ -61,14 +80,18 @@ int main(int argc, char **argv)
     int hover_count = 0;
     ros::Time scanning_start;
     float last_rho;
+    y = 0.0;
+    var_y = 360;
+    std_msgs::Bool scan;
     while(ros::ok()){
         ros::spinOnce();
+        scan.data = false;
+        barcode_scan.publish(scan);
+
         //Vertical line preprocess
         // if(last_y.rho - line_y.rho < 10 && last_y.rho - line_y.rho > -10)
         //     last_y = line_y;
-        std_msgs::Bool scan;
-        scan.data = false;
-        barcode_scan.publish(scan);
+
         y_pub.publish(line_y);
 
         //Horizontal line preprocess
