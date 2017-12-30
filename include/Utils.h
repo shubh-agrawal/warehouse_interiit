@@ -2,6 +2,8 @@
 #define UTILS_H
 #include "Image.h"
 #include "opencv2/opencv.hpp"
+#include <opencv2/core.hpp>
+#include <opencv2/imgcodecs.hpp>
 #include <vector>
 #include "Config.h"
 
@@ -9,11 +11,48 @@ using namespace std;
 using namespace cv;
 
 
+class para : public ParallelLoopBody
+{
+public :
+	para (Mat &img,std::vector<Point> &v,vector<ImagePatch> &images,const int s_i, const int s_j)
+		: m_img(img), m_v(v), m_images(images),sl_i(s_i),sl_j(s_j)
+	{
+	}
+
+	virtual void operator ()(const Range& range) const 
+	{
+		Mat crop;
+		for (int k = range.start; k < range.end; k++)
+		{
+			int i = k/N_SLICE_H;
+			int j = k % N_SLICE_H;
+			int part_i = sl_i*i;
+			int part_j = sl_j*j;
+			Rect region = Rect(part_j,part_i,sl_j,sl_i);
+			crop = m_img(region);
+			m_images[i+N_SLICE_H*j].imag = crop.clone();
+			m_images[i+N_SLICE_H*j].Process();
+			if(m_images[i+N_SLICE_H*j].valid)
+			{
+				m_v.push_back(Point(m_images[i+N_SLICE_H*j].contourCenterX + part_j,
+					m_images[i+N_SLICE_H*j].contourCenterY + part_i ));
+			}
+		}
+	}
+private :
+	Mat &m_img;
+	std::vector<Point> &m_v;
+	vector<ImagePatch> &m_images;
+	int sl_j;
+	int sl_i;
+};
+
 vector<ImagePatch> SlicePart(Mat im, vector<ImagePatch> images, int slices_h, int slices_w,std::vector<Point> &v){
 	int sl_i = im.rows/slices_h;
 	int sl_j = im.cols/slices_w;
 	Mat crop;
 	v.clear();
+	double t1 = (double) getTickCount();
 	for (int i = 0; i < slices_h; i++)
 	{
 		int part_i = sl_i*i;
@@ -32,7 +71,8 @@ vector<ImagePatch> SlicePart(Mat im, vector<ImagePatch> images, int slices_h, in
 			}
 		}
 	}
-
+	t1 = ((double) getTickCount() - t1) / getTickFrequency();
+    // cout << "Single Slice: " << t1 << " s" << endl;
 	return images;
 }
 
@@ -64,6 +104,46 @@ Mat RepackImages(vector<ImagePatch> images, int slices_h, int slices_w)
 	}
 	return img;
 }
+
+Mat SlicePartParallel(Mat im,std::vector<Point> &v){
+	int sl_i = im.rows/N_SLICE_H;
+	int sl_j = im.cols/N_SLICE_W;
+	Mat crop;
+	v.clear();
+	vector<ImagePatch> images(N_SLICE_W*N_SLICE_H);
+	double t1 = (double) getTickCount();
+
+	#ifdef CV_CXX11
+	parallel_for_(Range(0, N_SLICE_W*N_SLICE_H), [&](const Range& range){
+		for (int k = range.start; k < range.end; k++)
+		{
+			int i = k/N_SLICE_H;
+			int j = k % N_SLICE_H;
+			int part_i = sl_i*i;
+			int part_j = sl_j*j;
+			Rect region = Rect(part_j,part_i,sl_j,sl_i);
+			crop = im(region);
+			images[i+N_SLICE_H*j].imag = crop.clone();
+			images[i+N_SLICE_H*j].Process();
+			if(images[i+N_SLICE_H*j].valid)
+			{
+				v.push_back(Point(images[i+N_SLICE_H*j].contourCenterX + part_j,
+					images[i+N_SLICE_H*j].contourCenterY + part_i ));
+			}
+		}
+		      
+    });
+    #else
+    // cout<<"C++11 Support Required for faster performance";
+    para parallelSlice(im,v,images,sl_i,sl_j);
+    parallel_for_(Range(0,N_SLICE_W*N_SLICE_H),parallelSlice,6);
+    #endif 
+
+    t1 = ((double) getTickCount() - t1) / getTickFrequency();
+    // cout << "Parallel Slice: " << t1 << " s" << endl;,
+    return RepackImages(images,N_SLICE_H,N_SLICE_W);
+}
+
 
 Mat RemoveBackground(Mat image, bool b){
 	Mat mask, img_erosion, masked_image;

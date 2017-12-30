@@ -38,7 +38,7 @@ int main(int argc, char**argv)
 	ros:: Publisher vertical = nh.advertise<warehouse_interiit::Line>(VERTICAL_TOPIC, 10);
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray>(HORIZONTAL_TOPIC, 10);
 	image_transport::ImageTransport it(nh);
-	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback, ros::VoidPtr(), image_transport::TransportHints("compressed"));
+	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
 	image_transport::Publisher line_pub = it.advertise("/segmented_line", 1);
 	ros::Rate rate(15);
 	std::vector<Point> points;
@@ -47,22 +47,24 @@ int main(int argc, char**argv)
 	newImage = true;
 	while(nh.ok())
 	{
-		Mat dst;
+		Mat dst,dst_P;
 		if(!img.empty() && newImage)
 		{
 			vector<ImagePatch> images(N_SLICE_W*N_SLICE_H);
 			img = img.t();
 			cv::flip(img, img, 0);
 			img = RemoveBackground(img, true);
-			images = SlicePart(img, images, N_SLICE_H, N_SLICE_W,points);
-			dst = RepackImages(images,N_SLICE_H,N_SLICE_W);
+			// images = SlicePart(img, images, N_SLICE_H, N_SLICE_W,points);
+			// dst = RepackImages(images,N_SLICE_H,N_SLICE_W);
+			dst = SlicePartParallel(img,points);
+			// imshow("Parallel",dst_P);
 			//dst = ShowGrid(dst,N_SLICE_H,N_SLICE_W);
 			Mat dis;
 			dis = img.clone();
 			dis *= 0;
 			for (std::vector<Point>::iterator i = points.begin(); i != points.end(); ++i)
 			{
-				circle(dis, *i, 7, Scalar(255,0,255), -1);
+				circle(dis, *i, CONTOUR_RADIUS, Scalar(255,0,255), -1);
 			}
 			cvtColor(dis,dis,CV_BGR2GRAY);
 			ClusterLines(nh,dis,dst,points);
