@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(warehouse_interiit)
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+add_compile_options(-std=c++11)
 find_package(catkin REQUIRED COMPONENTS
   roscpp
   rospy
@@ -125,7 +127,7 @@ include_directories(
   ${OpenCV_INCLUDE_DIRS}
 )
 
-
+SET_SOURCE_FILES_PROPERTIES( src/line.cpp PROPERTIES COMPILE_FLAGS -std=c++11)
 add_executable(strategy src/strategy.cpp)
 add_executable(land src/square.cpp)
 add_executable(controller src/controller.cpp)
@@ -142,8 +144,12 @@ add_executable(testit src/test.cpp)
 
 ## Add cmake target dependencies of the executable
 ## same as for the library above
-# add_dependencies(${PROJECT_NAME}_node ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
-
+add_dependencies(strategy ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+add_dependencies(land ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+add_dependencies(controller ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+add_dependencies(line_detector ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+add_dependencies(barcode_node ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
+add_dependencies(line_in ${PROJECT_NAME}_generate_messages_cpp ${catkin_EXPORTED_TARGETS})
 ## Specify libraries to link a library or executable target against
 # target_link_libraries(${PROJECT_NAME}_node
 #   ${catkin_LIBRARIES}
