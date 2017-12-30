@@ -2,7 +2,7 @@
 #define CONFIG_H
 
 //Line Detection and Clustering Constants
-#define CONTOUR_RADIUS 7
+#define CONTOUR_RADIUS 3
 #define H_LOW 18	//Low Hue for thresholding
 #define S_LOW 30	//Low Saturation for thresholding
 #define V_LOW 80	//Low Value for thresholding

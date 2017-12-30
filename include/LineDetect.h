@@ -110,7 +110,7 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 
 		Point pt1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
 		Point pt2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
-		line(dst, pt1, pt2, Scalar(255,255,255), 2, CV_AA);
+		line(dst, pt1, pt2, Scalar(255,0,0), 2, CV_AA);
 		cluster_index.pop();
 	}
 	warehouse_interiit::Line temp;

@@ -124,9 +124,9 @@ class ImagePatch
       			correctMainContour(prevX, prevY);
       	  }
           //drawContours(imag,contours,largest_contour_index,Scalar(0,255,0),1);
-          circle(imag, Point(contourCenterX, contourCenterY), CONTOUR_RADIUS, Scalar(255,255,255), -1);
+          circle(imag, Point(contourCenterX, contourCenterY), CONTOUR_RADIUS, Scalar(255,0,255), -1);
           valid = true;
-          circle(imag, Point(middleX, middleY), 2, Scalar(0,0,255), -1);
+          //circle(imag, Point(middleX, middleY), 2, Scalar(0,0,255), -1);
         }
         else
         {
