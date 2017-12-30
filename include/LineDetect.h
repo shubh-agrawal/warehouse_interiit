@@ -117,7 +117,7 @@ void PublishLines(ros::NodeHandle nh,Mat &dst, vector<Vec2f> lines, queue<int> c
 	temp.rho = 0;
 	temp.theta = CV_PI/2;
 	std::reverse(horizontal_lines.lines.begin(),horizontal_lines.lines.end());
-	// horizontal_lines.lines.push_back(temp);
+	horizontal_lines.lines.push_back(temp);
 	if(horizontal_lines.lines.size() > 0)
 		other.publish(horizontal_lines);
 }

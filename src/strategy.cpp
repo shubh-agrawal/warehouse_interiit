@@ -6,51 +6,62 @@
 #include <warehouse_interiit/Line.h>
 #include <warehouse_interiit/LineArray.h>
 #include "Config.h"
+#include <queue>
 
-#define IMAGE_HEIGHT 360
-#define IMAGE_WIDTH 640
-#define WIDTH_X 50
-#define MAX_ERROR_X 75
+#define IMAGE_HEIGHT 640
+#define IMAGE_WIDTH 360
+#define WIDTH_X 150
+#define MAX_ERROR_X 250
 #define MAX_HOVER_COUNT 10
 #define MIN_HEIGHT 1.0
 #define MAX_HEIGHT 1.8
-#define CAMERA_VAR_X 15
-#define CAMERA_VAR_Y 15
+#define CAMERA_VAR_X 30
+#define CAMERA_VAR_Y 30
 #define MOTION_VAR_X 30
 #define MOTION_VAR_Y 30
-
+#define GAMMA 5
 #define PI 3.14159
 using namespace warehouse_interiit;
+
+
 
 float current_alti;
 Line line_y;
 LineArray lines_x;
 
-float x, var_x, y, var_y;
- last_t, delta_t;
+std::queue<float> xs, ys;
+
+float x, y;
 ardrone_autonomy::Navdata navdata;
+
 void navdata_cb(const ardrone_autonomy::Navdata::ConstPtr& msg){
     navdata = *msg;
     current_alti = (navdata.altd)/1000.0;
-    u = 0;
-    if(last_t > 100000.0){
-        u = (navdata.ax)*rotY*PI*delta_t*(navdata.tm - last_t)/360.0;
-        ROS_INFO("u %f", u);
-    }
-    delta_t = navdata.tm - last_t;
-    last_t = navdata.tm;
-    y = y + u;
-    var_y = var_y + MOTION_VAR_Y;
 }
+
+float getAverage(float newVal, std::queue<float>& q, float oldVal){
+    q.push(newVal);
+    if(q.size() > GAMMA){
+        float last = q.front();
+        q.pop();
+        oldVal -= last/GAMMA;
+        return oldVal += newVal/q.size();
+    }
+    else{
+        return (oldVal*(q.size()-1) + newVal)/q.size();
+    }
+}
+
 void x_cb(const LineArray::ConstPtr& msg){
     lines_x = *msg;
 }
 
 void y_cb(const Line::ConstPtr& msg){
     line_y = *msg;
-    y = (y*CAMERA_VAR_Y + line_y.rho*var_y)/(var_y + CAMERA_VAR_Y);
-    var_y = 1/((1/var_y) + (1/CAMERA_VAR_Y));
-    // line_y.rho = y;
+    // y = (1-GAMMA)*y + (GAMMA)*line_y.rho;
+    y = getAverage(line_y.rho, ys, y);
+    ROS_INFO("y %f", y);
+    line_y.rho = y;
 }
 
 int main(int argc, char **argv)
@@ -62,6 +73,7 @@ int main(int argc, char **argv)
     ros::Publisher x_pub = nh.advertise<Line>("feedback/horizontal", 10);
     ros::Publisher y_pub = nh.advertise<Line>("feedback/vertical", 10);
     ros::Publisher alt_set_pub = nh.advertise<std_msgs::Float32>("altitude_setpoint", 10);
+    ros::Publisher yaw_set_pub = nh.advertise<std_msgs::Float32>("yaw_setpoint", 10);
     ros::Publisher barcode_scan = nh.advertise<std_msgs::Bool>("code/scan", 100);
     ros::Subscriber navdata_sub = nh.subscribe<ardrone_autonomy::Navdata>
             ("ardrone/navdata", 5, navdata_cb);
@@ -70,66 +82,71 @@ int main(int argc, char **argv)
     ros::Subscriber y_sub = nh.subscribe<Line>
             ("lines/vertical", 5, y_cb);
 
-    ros::Rate rate(20);
+    ros::Rate rate(30);
     std_msgs::String state;
     Line last_y, last_x, line_x;
-    std_msgs::Float32 alt_set;
+    std_msgs::Float32 alt_set, yaw_set;
     alt_set.data = MIN_HEIGHT;
-    bool isHovering = false, isScanning = false, turnFlag = false;
+    bool isHovering = false, isScanning = false, turnFlag = false, yawSet = false;
     float error = 999999, difference = WIDTH_X;
     int hover_count = 0;
     ros::Time scanning_start;
     float last_rho;
-    y = 0.0;
-    var_y = 360;
+    y = 0.0, x = 0.0;
     std_msgs::Bool scan;
+
     while(ros::ok()){
         ros::spinOnce();
+        if(!yawSet && navdata.rotZ > 1.0){
+            yaw_set.data = navdata.rotZ;
+            yawSet = true;
+        }
         scan.data = false;
         barcode_scan.publish(scan);
 
         //Vertical line preprocess
-        // if(last_y.rho - line_y.rho < 10 && last_y.rho - line_y.rho > -10)
-        //     last_y = line_y;
-
         y_pub.publish(line_y);
-
+        ROS_INFO("line angle %f", line_y.theta*180/PI);
         //Horizontal line preprocess
         if (!isHovering){
             for(int i = 0; i < lines_x.lines.size(); ++i){
-                // if((IMAGE_HEIGHT/2) - (lines_x.lines[i].rho) < difference)
-                //     continue;
-                // else{
-                    // last_rho = lines_x.lines[i].rho;
+                if((IMAGE_HEIGHT/2) - (lines_x.lines[i].rho) < difference)
+                    continue;
+                else{
+                    if(lines_x.lines[i].rho >= 1.0){
+                        x = getAverage(lines_x.lines[i].rho, xs, x);
+                        lines_x.lines[i].rho = x;
+                    }
                     x_pub.publish(lines_x.lines[i]);
-                    // error = IMAGE_HEIGHT/2 - last_rho;
+                    last_rho = lines_x.lines[i].rho;
+                    error = IMAGE_HEIGHT/2 - last_rho;
                     break;
-                // }
+                }
             }
-            ROS_INFO("error: %f, difference: %f", error, difference);
-        //     if(error < MAX_ERROR_X){
-        //         difference = -1*WIDTH_X;
-        //     }
-        //     if(error<WIDTH_X && error>-WIDTH_X)
-        //         ++hover_count;
-        //     if(hover_count > MAX_HOVER_COUNT){
-        //         isHovering = true;
-        //         scanning_start = ros::Time::now();
-        //         difference = WIDTH_X;
-        //     }
-        //     alt_set.data = MIN_HEIGHT;
-        // }
-        // else{
-        //     Line temp;
-        //     for(int i = 0; i < lines_x.lines.size(); ++i){
-        //         float rho = lines_x.lines[i].rho;
-        //         if(fabs(last_rho - rho) < 2*difference){
-        //             temp = lines_x.lines[i];
-        //             last_rho = temp.rho;
-        //             break;
-        //         }
-        //     }
-        //     x_pub.publish(temp);
+            // ROS_INFO("error: %f, difference: %f", error, difference);
+            if(error < MAX_ERROR_X){
+                difference = -1*WIDTH_X;
+            }
+            if(error<WIDTH_X && error>-WIDTH_X)
+                ++hover_count;
+            if(hover_count > MAX_HOVER_COUNT){
+                isHovering = true;
+                scanning_start = ros::Time::now();
+                difference = WIDTH_X;
+            }
+            alt_set.data = MIN_HEIGHT;
+        }
+        else{
+            Line temp;
+            for(int i = 0; i < lines_x.lines.size(); ++i){
+                float rho = lines_x.lines[i].rho;
+                if(fabs(last_rho - rho) < 2*difference){
+                    temp = lines_x.lines[i];
+                    last_rho = temp.rho;
+                    break;
+                }
+            }
+            x_pub.publish(temp);
             // if(temp.L){
             //     state.data = (temp.L > 0)?"Turn_Right":"Turn_Left";
             //     scan.data = false;
@@ -179,6 +196,12 @@ int main(int argc, char **argv)
             //         difference = WIDTH_X;
             //     }
             // }
+            if(ros::Time::now() - scanning_start > ros::Duration(10.0)){
+                scan.data = false;
+                isHovering = false;
+                hover_count = 0;
+                difference = WIDTH_X;
+            }
         }
         if(current_alti >= (MIN_HEIGHT - 0.2) && line_y.rho!=0){
             state.data = "Follow";
@@ -187,6 +210,7 @@ int main(int argc, char **argv)
             state.data = "Takeoff";
         state_pub.publish(state);
         alt_set_pub.publish(alt_set);
+        yaw_set_pub.publish(yaw_set);
         rate.sleep();
     }
 

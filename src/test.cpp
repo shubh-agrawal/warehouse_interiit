@@ -40,9 +40,11 @@
 #define kiX 0.000
 #define kdX 0.1
 
-#define kpY 0.0005
+#define kpY 0.001
 #define kiY 0.0000
-#define kdY 0.05
+#define kdY 0.1
+
+#define kpT 0.1
 
 using namespace warehouse_interiit;
 using namespace std;
@@ -53,7 +55,7 @@ float current_alti;
 float set_alt;
 Line line_x;
 Line line_y;
-float current_heading;
+float current_heading, setpoint_heading;
 std_msgs::Empty empty;
 
 void navdata_cb(const ardrone_autonomy::Navdata::ConstPtr& msg){
@@ -70,6 +72,10 @@ void y_cb(const Line::ConstPtr& msg){
     line_y = *msg;
 }
 
+// void yaw_cb(const std_msgs::Float32::ConstPtr& msg){
+//     setpoint_heading = msg->data;
+// }
+
 int main(int argc, char **argv)
 {
     ros::init(argc, argv, "contvyer_node");
@@ -81,11 +87,13 @@ int main(int argc, char **argv)
             ("feedback/vertical", 5, x_cb);
     ros::Subscriber y_sub = nh.subscribe<Line>
             ("feedback/horizontal", 5, y_cb);
+    // ros::Subscriber yaw_sub = nh.subscribe<std_msgs::Float32>
+    //         ("/yaw_setpoint", 5, yaw_cb);
 
     ros::Publisher vel_pub = nh.advertise<geometry_msgs::Twist>
             ("/cmd_vel", 10);
     ros::Publisher takeoff_pub = nh.advertise<std_msgs::Empty>
-            ("ardrone/takeoff", 10);\
+            ("ardrone/takeoff", 10);
     ros::Publisher land_pub = nh.advertise<std_msgs::Empty>
             ("ardrone/land", 10);
     ros::ServiceClient flattrim = nh.serviceClient<std_srvs::Empty>("/ardrone/flattrim");
@@ -118,57 +126,60 @@ int main(int argc, char **argv)
         if(navdata.batteryPercent > 40){
             if(ros::Time::now() - start < ros::Duration(0.5) && !isTookOff){
                 takeoff_pub.publish(empty);
+                setpoint_heading = current_heading;
             }
             if(navdata.state == 4 && !isTookOff){
                 isTookOff = true;
                 start = ros::Time::now();
+                setpoint_heading = current_heading;
             }
             if(ros::Time::now() - start < ros::Duration(30.0) && isTookOff){
-                // errorX = 360.0/2 - line_x.rho;
-                // error_diffX = errorX-last_errorX;
-                // if((errorX < 10 && errorX > -10) && (error_diffX < 10 && error_diffX > -10))
-                //     error_diffX = 0;
-                // vx = kpX*errorX + kdX*error_diffX;
-                // if(vx > MAX_VELOCITY)
-                //     vx = MAX_VELOCITY;
-                // else if(vx < -1*MAX_VELOCITY)
-                //     vx = -1*MAX_VELOCITY;
+                errorX = 360.0/2 - line_x.rho;
+                error_diffX = errorX-last_errorX;
+                if((errorX < 20 && errorX > -20) && (error_diffX < 20 && error_diffX > -20))
+                    error_diffX = 0;
+                vx = kpX*errorX + kdX*error_diffX;
+                if(vx > MAX_VELOCITY)
+                    vx = MAX_VELOCITY;
+                else if(vx < -1*MAX_VELOCITY)
+                    vx = -1*MAX_VELOCITY;
                 // ROS_INFO("vx %f \t errorX %f \t p %f \t d %f", vx, errorX, kpX*errorX, kdX*error_diffX);
-                // last_errorX = errorX;
+                last_errorX = errorX;
                 errorY = 640.0/2 - line_y.rho;
                 error_diffY = errorY - last_errorY;
-                if((errorY < 20 && errorY > -20) && (error_diffY < 15 && error_diffY > -15))
+                if((errorY < 20 && errorY > -20) && (error_diffY < 20 && error_diffY > -20))
                     error_diffY = 0;
                 vy = -1*(kpY*errorY + kdY*error_diffY);
                 if(vy > MAX_VELOCITY)
                     vy = MAX_VELOCITY;
                 else if(vy < -1*MAX_VELOCITY)
                     vy = -1*MAX_VELOCITY;
-                ROS_INFO("vy %f \t errorY %f \t p %f \t d %f", vy, errorY, kpY*errorY, kdX*error_diffY);
+                // ROS_INFO("vy %f \t errorY %f \t p %f \t d %f", vy, errorY, kpY*errorY, kdY*error_diffY);
                 last_errorY = errorY;
+
+                errorT = setpoint_heading - current_heading;
+                angz = kpT*errorT;
+                if(angz > 1.0)
+                    angz = 1.0;
+                else if(angz < -1.0)
+                    angz = -1.0;
+                ROS_INFO("angz %f errorT %f curH %f set %f", angz, errorT, current_heading, setpoint_heading);
             }
-            // if(ros::Time::now() - start < ros::Duration(30.0) && isTookOff){
-            //     errorX = 360.0/2 - line_x.rho;
-            //     if(errorX > 0){
-            //         if(errorX > 170.0)
-            //             vy = 2*MAX_VELOCITY;
-            //         else
-            //             vy = MAX_VELOCITY;
-            //     }
-            //     else if(errorX < 0){
-            //         if(errorX < -170.0)
-            //             vy = -2*MAX_VELOCITY;
-            //         else
-            //             vy = -1*MAX_VELOCITY;
-            //     }
-            //     ROS_INFO("vy %f, errorX %f", vy, errorX);
+            // ROS_INFO("Altd %f", current_alti);
+            // if(current_alti < 0.95 && isTookOff){
+            //     vz = 1.0;
             // }
-            else if(ros::Time::now() - start > ros::Duration(30.0) && isTookOff){
+            // else if(current_alti >= 0.95 && isTookOff){
+            //     vz = 0.0;
+            // }
+            else if(ros::Time::now() - start >= ros::Duration(10.0) && isTookOff){
                 land_pub.publish(empty);
                 vy = 0.0;
             }
-            // vel.linear.x = vx;
+            vel.linear.x = vx;
             vel.linear.y = vy;
+            // vel.linear.z = vz;
+            vel.angular.z = angz;
             vel_pub.publish(vel);
         }
         else{

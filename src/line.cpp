@@ -15,9 +15,10 @@
 
 using namespace std;
 using namespace cv;
-
+using namespace warehouse_interiit;
 Mat img;
 bool newImage;
+warehouse_interiit::Line line_y, line_x;
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
@@ -31,6 +32,14 @@ void imageCallback(const sensor_msgs::ImageConstPtr& msg)
   }
 }
 
+void y_filter_cb(const Line::ConstPtr& msg){
+    line_y = *msg;
+}
+
+void x_filter_cb(const Line::ConstPtr& msg){
+    line_x = *msg;
+}
+
 int main(int argc, char**argv)
 {
 	ros::init(argc, argv, "line_publisher");
@@ -40,6 +49,8 @@ int main(int argc, char**argv)
 	image_transport::ImageTransport it(nh);
 	image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
 	image_transport::Publisher line_pub = it.advertise("/segmented_line", 1);
+    ros::Subscriber y_sub = nh.subscribe<Line>("feedback/horizontal", 5, y_filter_cb);
+    ros::Subscriber x_sub = nh.subscribe<Line>("feedback/vertical", 5, x_filter_cb);
 	ros::Rate rate(15);
 	std::vector<Point> points;
 	//namedWindow("Display");
@@ -70,6 +81,15 @@ int main(int argc, char**argv)
 			ClusterLines(nh,dis,dst,points);
 			line_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", dst).toImageMsg();
 			line_pub.publish(line_msg);
+
+			Point pty1(0.0, line_y.rho);
+			Point pty2(1000.0, line_y.rho);
+			line(dst, pty1, pty2, Scalar(255, 255, 255), 2, CV_AA);
+
+			Point ptx1(line_x.rho, 0.0);
+			Point ptx2(line_x.rho, 1000.0);
+			line(dst, ptx1, ptx2, Scalar(255, 255, 255), 2, CV_AA);
+
 			imshow("Display",dst);
 			if(char(waitKey(1)) == 'q')
 				break;
