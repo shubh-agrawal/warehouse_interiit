@@ -1,5 +1,5 @@
-#ifndef LINEDETECT_H
-#define LINEDETECT_H
+#ifndef LINEDETECTCUDA_H
+#define LINEDETECTCUDA_H
 
 #include <ros/ros.h>
 #include <vector>
