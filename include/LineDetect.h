@@ -11,6 +11,16 @@
 
 using namespace cv;
 
+typedef Point3_<uint8_t> Pixel;
+
+struct Operator
+{
+  void operator ()(Pixel &pixel, const int * position) const
+  {
+    	
+  }
+};
+
 void thinningIteration(cv::Mat& img, int iter)
 {
     CV_Assert(img.channels() == 1);
@@ -155,9 +165,12 @@ void PublishLines(ros::NodeHandle nh,Mat &dst,Mat &dis, vector<Vec2f> lines, que
 	ros:: Publisher other = nh.advertise<warehouse_interiit::LineArray >(HORIZONTAL_TOPIC, 10);
 	warehouse_interiit::Line vertical_line;
 	warehouse_interiit::LineArray horizontal_lines;
+	warehouse_interiit::LineArray vertical_lines;
 	ros::Rate rate(15);
     // Iterate through each cluster  
     Vec2f v_line,h_line;   
+    v_line[0] = 0;
+    v_line[1] = 0;
     int L; 
     int j = 0;
     while(!cluster_index.empty())
@@ -165,39 +178,54 @@ void PublishLines(ros::NodeHandle nh,Mat &dst,Mat &dis, vector<Vec2f> lines, que
     	ros::spinOnce();
 		int k = cluster_index.front();          //cluster boundary
 		int size = k-j;                         //number of line in cluster
-		float r_avg = 0.0, t_avg = 0.0;
+		float r_avg , t_avg ;
 		            
-		for (; j < k; j++)
+		for (r_avg = 0.0, t_avg = 0.0; j < k; j++)
 		{
-		    r_avg = r_avg + lines[j][0] / size ;
-		    t_avg = t_avg + lines[j][1] / size ;
+		    r_avg = r_avg + lines[j][0]  ;
+		    t_avg = t_avg + lines[j][1] ;
 		}
-		if(t_avg < 40*CV_PI/180)
-		{
-		   	v_line[0] = r_avg;
-		   	v_line[1] = t_avg;
-		}
-		else
-		{
-			h_line[0] = r_avg;
-		   	h_line[1] = t_avg;
-		}
-		L = LDetect(dis,v_line,h_line);
-		if(t_avg < 40*CV_PI/180)
+		t_avg /= size;
+		r_avg *= 2;
+		r_avg /= size;
+		// if(t_avg < 40*CV_PI/180 or t_avg > 320*CV_PI/180)
+		// {
+		//    	v_line[0] = r_avg;
+		//    	v_line[1] = t_avg;
+		// }
+		// else
+		// {
+		// 	h_line[0] = r_avg;
+		//    	h_line[1] = t_avg;
+		// }
+		// L = LDetect(dis,v_line,h_line);
+		ROS_INFO("rho %f theta %f",r_avg,t_avg);
+		if(t_avg < 30.0*CV_PI/180.0 or  (t_avg > 140.0*CV_PI/180.0 and t_avg < 220*CV_PI/180))
 		{
 		  	vertical_line.rho = r_avg;
-		   	vertical_line.theta = t_avg;		   	
-		   	vertical.publish(vertical_line);
+		   	vertical_line.theta = t_avg;
+		   	// ROS_INFO("rho : %f theta: %f ",vertical_line.rho,vertical_line.theta);		   	
+		   	// vertical.publish(vertical_line);
+		   	vertical_lines.lines.push_back((vertical_line));
 		}
-		else
-		   	if(t_avg > 40*CV_PI/180 and t_avg<140*CV_PI/180)
+		else{
+			 if(t_avg > 60.0*CV_PI/180.0 and t_avg<140.0*CV_PI/180.0)
 		   	{
 		   		warehouse_interiit::Line temp;
 		   		temp.rho = r_avg;
 		   		temp.theta = t_avg;
-		   		temp.L = L;
+		   		// temp.L = L;
 		   		horizontal_lines.lines.push_back(temp);
 		   	}
+		   	double cos_t = cos(t_avg);  double sin_t = sin(t_avg);
+			//ROS_INFO("Theta %f",t_avg);
+			double x0 = r_avg*cos_t, y0 = r_avg*sin_t;
+			double alpha = 3000;
+
+			Point pt1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+			Point pt2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
+			line(dst, pt1, pt2, Scalar(255,0,0), 2, CV_AA);
+		}
 		// if(t_avg > 10*CV_PI/180 and t_avg < 80*CV_PI/180 or t_avg > 100*CV_PI/180)
 		//    	continue;
 		// if(L)
@@ -208,14 +236,6 @@ void PublishLines(ros::NodeHandle nh,Mat &dst,Mat &dis, vector<Vec2f> lines, que
 		// }
 
 		j = k;                                //update cluster boundary
-
-		double cos_t = cos(t_avg);  double sin_t = sin(t_avg);
-		double x0 = r_avg*cos_t, y0 = r_avg*sin_t;
-		double alpha = 3000;
-
-		Point pt1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
-		Point pt2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
-		line(dst, pt1, pt2, Scalar(255,0,0), 2, CV_AA);
 		cluster_index.pop();
 	}
 	warehouse_interiit::Line temp;
@@ -225,6 +245,50 @@ void PublishLines(ros::NodeHandle nh,Mat &dst,Mat &dis, vector<Vec2f> lines, que
 	horizontal_lines.lines.push_back(temp);
 	if(horizontal_lines.lines.size() > 0)
 		other.publish(horizontal_lines);
+
+	if(vertical_lines.lines.size() == 1){
+		vertical.publish(vertical_lines.lines[0]);
+		double r_avg = vertical_lines.lines[0].rho, t_avg = vertical_lines.lines[0].theta;
+		double cos_t = cos(t_avg);  double sin_t = sin(t_avg);
+		//ROS_INFO("Theta %f",t_avg);
+		double x0 = r_avg*cos_t, y0 = r_avg*sin_t;
+		double alpha = 3000;
+
+		Point pt1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+		Point pt2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
+		line(dst, pt1, pt2, Scalar(255,0,0), 2, CV_AA);
+	}
+	else{
+		if(vertical_lines.lines.size() > 1){
+			double r_avg = 0,t_avg = 0;
+			for (std::vector<warehouse_interiit::Line>::iterator i = vertical_lines.lines.begin(); i != vertical_lines.lines.end(); ++i)
+			{
+				if(i->theta > 140*CV_PI/180){
+					i->theta -= CV_PI;
+					i->rho *= -1;
+				}
+				r_avg += i->rho;
+				t_avg += i->theta;
+			}
+			r_avg /= vertical_lines.lines.size();
+			t_avg /= vertical_lines.lines.size();
+			if(t_avg < 0){
+				t_avg += CV_PI;
+				r_avg *= -1;
+			}
+			vertical_line.rho = r_avg;
+			vertical_line.theta = t_avg;
+			vertical.publish(vertical_line);
+			double cos_t = cos(t_avg);  double sin_t = sin(t_avg);
+			//ROS_INFO("Theta %f",t_avg);
+			double x0 = r_avg*cos_t, y0 = r_avg*sin_t;
+			double alpha = 3000;
+
+			Point pt1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+			Point pt2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
+			line(dst, pt1, pt2, Scalar(255,0,0), 2, CV_AA);
+		}
+	}
 }
 
 void ClusterLines(ros::NodeHandle nh,Mat &dis,Mat &dst)
@@ -237,21 +301,22 @@ void ClusterLines(ros::NodeHandle nh,Mat &dis,Mat &dst)
 	vector<Vec2f> lines;
 
 	cv::cvtColor(dst, dis, CV_BGR2GRAY);
+	cv::resize(dis, dis, cv::Size(), 0.5, 0.5);
 	cv::threshold(dis, dis, 10, 255, CV_THRESH_BINARY);
 	thinning(dis, dis);
 	cv::imshow("dst", dis);
 
-	HoughLines(dis, lines, 5, CV_PI*3/180,200, 0, 0 );
-	for (int i = 0; i < lines.size(); ++i)
-	{
-		double cos_t = cos(lines[i][1]);  double sin_t = sin(lines[i][1]);
-		double x0 = lines[i][0]*cos_t, y0 = lines[i][0]*sin_t;
-		double alpha = 3000;
+	HoughLines(dis, lines, 3, CV_PI*3/180,100, 0, 0 );
+	// for (int i = 0; i < lines.size(); ++i)
+	// {
+	// 	double cos_t = cos(lines[i][1]);  double sin_t = sin(lines[i][1]);
+	// 	double x0 = 2*lines[i][0]*cos_t, y0 = 2*lines[i][0]*sin_t;
+	// 	double alpha = 3000;
 
-		Point pt1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
-		Point pt2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
-		line(dst, pt1, pt2, Scalar(255,255,255), 2, CV_AA);
-	}
+	// 	Point pt1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+	// 	Point pt2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
+	// 	line(dst, pt1, pt2, Scalar(255,255,255), 2, CV_AA);
+	// }
 	if(lines.size() > 0)
 	{
 		sort(lines.begin(), lines.end(), sortByTheta);

@@ -75,13 +75,22 @@ int main(int argc, char**argv)
 			line_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", dst).toImageMsg();
 			line_pub.publish(line_msg);
 
-			Point pty1(0.0, line_y.rho);
-			Point pty2(1000.0, line_y.rho);
+			double cos_t = cos(line_y.theta);  double sin_t = sin(line_y.theta);
+			double x0 = line_y.rho*cos_t, y0 = line_y.rho*sin_t;
+			double alpha = 3000;
+
+			Point pty1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+			Point pty2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
 			line(dst, pty1, pty2, Scalar(255, 255, 255), 2, CV_AA);
 
-			Point ptx1(line_x.rho, 0.0);
-			Point ptx2(line_x.rho, 1000.0);
+			cos_t = cos(line_x.theta);
+			sin_t = sin(line_x.theta);
+			x0 = line_x.rho*cos_t, y0 = line_x.rho*sin_t;
+
+			Point ptx1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+			Point ptx2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
 			line(dst, ptx1, ptx2, Scalar(255, 255, 255), 2, CV_AA);
+
 
 			imshow("Display",dst);
 			if(char(waitKey(1)) == 'q')

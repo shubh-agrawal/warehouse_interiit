@@ -19,7 +19,7 @@
 #define CAMERA_VAR_Y 30
 #define MOTION_VAR_X 30
 #define MOTION_VAR_Y 30
-#define GAMMA 5
+#define GAMMA 1
 #define PI 3.14159
 using namespace warehouse_interiit;
 
