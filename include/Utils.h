@@ -14,14 +14,13 @@ using namespace cv;
 class para : public ParallelLoopBody
 {
 public :
-	para (Mat &img,std::vector<Point> &v,vector<ImagePatch> &images,const int s_i, const int s_j)
+	para (const Mat img,std::vector<Point> &v,vector<ImagePatch> &images,const int s_i, const int s_j)
 		: m_img(img), m_v(v), m_images(images),sl_i(s_i),sl_j(s_j)
 	{
 	}
 
 	virtual void operator ()(const Range& range) const 
 	{
-		Mat crop;
 		for (int k = range.start; k < range.end; k++)
 		{
 			int i = k/N_SLICE_H;
@@ -29,8 +28,7 @@ public :
 			int part_i = sl_i*i;
 			int part_j = sl_j*j;
 			Rect region = Rect(part_j,part_i,sl_j,sl_i);
-			crop = m_img(region);
-			m_images[i+N_SLICE_H*j].imag = crop.clone();
+			m_images[i+N_SLICE_H*j].imag = m_img(region).clone();
 			m_images[i+N_SLICE_H*j].Process();
 			if(m_images[i+N_SLICE_H*j].valid)
 			{
@@ -40,7 +38,7 @@ public :
 		}
 	}
 private :
-	Mat &m_img;
+	Mat m_img;
 	std::vector<Point> &m_v;
 	vector<ImagePatch> &m_images;
 	int sl_j;
@@ -136,7 +134,7 @@ Mat SlicePartParallel(Mat im,std::vector<Point> &v){
     #else
     // cout<<"C++11 Support Required for faster performance";
     para parallelSlice(im,v,images,sl_i,sl_j);
-    parallel_for_(Range(0,N_SLICE_W*N_SLICE_H),parallelSlice,6);
+    parallel_for_(Range(0,N_SLICE_W*N_SLICE_H),parallelSlice);
     #endif 
 
     t1 = ((double) getTickCount() - t1) / getTickFrequency();

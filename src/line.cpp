@@ -61,24 +61,17 @@ int main(int argc, char**argv)
 		Mat dst,dst_P;
 		if(!img.empty() && newImage)
 		{
-			vector<ImagePatch> images(N_SLICE_W*N_SLICE_H);
+			// vector<ImagePatch> images(N_SLICE_W*N_SLICE_H);
 			img = img.t();
 			cv::flip(img, img, 0);
-			img = RemoveBackground(img, true);
+			dst = RemoveBackground(img, true);
 			// images = SlicePart(img, images, N_SLICE_H, N_SLICE_W,points);
 			// dst = RepackImages(images,N_SLICE_H,N_SLICE_W);
-			dst = SlicePartParallel(img,points);
+			// dst = SlicePartParallel(img,points);
 			// imshow("Parallel",dst_P);
 			//dst = ShowGrid(dst,N_SLICE_H,N_SLICE_W);
 			Mat dis;
-			dis = img.clone();
-			dis *= 0;
-			for (std::vector<Point>::iterator i = points.begin(); i != points.end(); ++i)
-			{
-				circle(dis, *i, CONTOUR_RADIUS, Scalar(255,0,255), -1);
-			}
-			cvtColor(dis,dis,CV_BGR2GRAY);
-			ClusterLines(nh,dis,dst,points);
+			ClusterLines(nh,dis,dst);
 			line_msg = cv_bridge::CvImage(std_msgs::Header(), "bgr8", dst).toImageMsg();
 			line_pub.publish(line_msg);
 
