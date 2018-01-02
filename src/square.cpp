@@ -1,45 +1,47 @@
+#include <ros/ros.h>
+#include <image_transport/image_transport.h>
+#include <cv_bridge/cv_bridge.h>
+#include <geometry_msgs/Point.h>
+
 #include "opencv2/highgui/highgui.hpp"
 #include "opencv2/imgproc/imgproc.hpp"
 #include <iostream>
 #include <vector>
-#include <ros/ros.h>
-#include <image_transport/image_transport.h>
-#include <cv_bridge/cv_bridge.h>
-#include "Config.h"
-#include "warehouse_interiit/Line.h"
 
 using namespace std;
 using namespace cv;
 
-Mat image;
-
-Mat RemoveBackground(Mat image){
-    Mat mask,maskU,maskL, img_erosion, masked_image;
-    Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
-
-    cvtColor(image, image, CV_BGR2HSV);
-    inRange(image, Scalar(165,75,75), Scalar(180,255,255), maskU); // Only For segmenting Red
-    inRange(image, Scalar(0,75,75), Scalar(10,255,255), maskL);
-    addWeighted(maskU, 1.0, maskL, 1.0, 0.0, mask);
-    
-    bitwise_and(image, image, masked_image, mask);
-    erode(masked_image, img_erosion, kernel, Point(-1, -1), 3);
-    dilate(img_erosion,img_erosion,kernel,Point(-1,-1),7);
-        
-    return img_erosion;
-}
+Mat img;
 
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
   {
-    image = cv_bridge::toCvShare(msg, "bgr8")->image.clone();
+    img = cv_bridge::toCvShare(msg, "bgr8")->image.clone();
+    newImage = true;
   }
   catch (cv_bridge::Exception& e)
   {
     ROS_ERROR("Could not convert from '%s' to 'bgr8'.", msg->encoding.c_str());
   }
 }
+
+Mat RemoveBackground(Mat image){
+	Mat mask,maskU,maskL, img_erosion, masked_image;
+	Mat kernel = getStructuringElement(MORPH_RECT, Size(5, 5));
+
+	cvtColor(image, image, CV_BGR2HSV);
+	inRange(image, Scalar(165,75,75), Scalar(180,255,255), maskU); // Only For segmenting Red
+    inRange(image, Scalar(0,75,75), Scalar(10,255,255), maskL);
+    addWeighted(maskU, 1.0, maskL, 1.0, 0.0, mask);
+    
+	bitwise_and(image, image, masked_image, mask);
+    erode(masked_image, img_erosion, kernel, Point(-1, -1), 3);
+    dilate(img_erosion,img_erosion,kernel,Point(-1,-1),7);
+	    
+	return img_erosion;
+}
+
 
 int thresh = 50, N = 2;
 
@@ -52,7 +54,7 @@ double angle( Point pt1, Point pt2, Point pt0 )
     return (dx1*dx2 + dy1*dy2)/sqrt((dx1*dx1 + dy1*dy1)*(dx2*dx2 + dy2*dy2) + 1e-10);
 }
 
-void findSquares( const Mat& image, vector<vector<Point> >& squares )
+Point findSquares( const Mat& image, vector<vector<Point> >& squares )
 {
     squares.clear();
 
@@ -112,47 +114,46 @@ void findSquares( const Mat& image, vector<vector<Point> >& squares )
 }
 
 
+Point drawSquares( Mat& image, const vector<vector<Point> >& squares )
+{
+    Point center;
+    for( size_t i = 0; i < squares.size(); i++ )
+    {
+        const Point* p = &squares[i][0];
+        int n = (int)squares[i].size();
+        polylines(image, &p, &n, 1, true, Scalar(0,255,0), 3, CV_AA);
+
+        for(int j = 0; j < 4; ++j){
+            center.x = p[j].x;
+            center.y = p[j].y;
+        }
+        center.x = center.x/4;
+        center.y = center.y/4;
+        return center;
+    }
+}
+
+
 int main(int argc, char** argv)
 {
-    vector<vector<Point> > squares;
-    ros::init(argc, argv, "square_publisher");
+    ros::init(argc, argv, "square_detector");
     ros::NodeHandle nh;
     image_transport::ImageTransport it(nh);
     image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
-    ros:: Publisher vertical = nh.advertise<warehouse_interiit::Line>("/square/vertical", 10);
-    ros:: Publisher horizontal = nh.advertise<warehouse_interiit::Line>("/square/horizontal", 10);
-
-    ros::Rate rate(15);
-    while(nh.ok())
-    {
-        if(!image.empty())
-        {
-            image = RemoveBackground(image);
-            findSquares(image, squares);
-            // imshow("out", image);
-            waitKey(30);
-            float x = 0,y = 0;
-            if(squares.size() != 0){
-                for (std::vector<std::vector<Point> >::iterator i = squares.begin(); i != squares.end(); ++i)
-                {
-                    for (std::vector<Point>::iterator j = i->begin(); j != i->end(); ++i)
-                    {
-                        x += j->x;
-                        y += j->y;
-                    }
-                }
-                x /= 4*squares.size();
-                warehouse_interiit::Line v , h;
-                v.rho = x;
-                v.theta = 0;
-                h.rho = y;
-                h.theta = CV_PI/2;
-                vertical.publish(v);
-                horizontal.publish(h);
-            }
-        }
-        ros::spinOnce();
-        rate.sleep();
+    ros::Publisher centerPub = nh.advertise<geometry_msgs::Point>("square", 5);
+    ros::Rate rate(20);
+    Point center;
+    geometry_msgs::Point pt;
+    vector<vector<Point> > squares;
+    if(!img.empty()){
+        img = RemoveBackground(img);
+        findSquares(img, squares);
+        center = drawSquares(img, squares);
+        pt.x = center.x;
+        pt.y = center.y;
+        centerPub.publish(pt);
+        imshow("out", img);
+        waitKey(0);
     }
 
     return 0;

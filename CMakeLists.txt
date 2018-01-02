@@ -135,6 +135,7 @@ add_executable(line_detector src/line.cpp)
 add_executable(barcode_node src/barcode.cpp)
 add_executable(line_in src/line_in.cpp)
 add_executable(testit src/test.cpp)
+add_executable(square src/square.cpp)
 
 ## Rename C++ executable without prefix
 ## The above recommended prefix causes long target names, the following renames the
@@ -164,6 +165,10 @@ target_link_libraries(controller
 )
 
 target_link_libraries(testit
+   ${catkin_LIBRARIES}
+)
+
+target_link_libraries(square
    ${catkin_LIBRARIES}
 )
 
