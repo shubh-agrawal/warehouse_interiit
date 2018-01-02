@@ -11,16 +11,6 @@
 
 using namespace cv;
 
-typedef Point3_<uint8_t> Pixel;
-
-struct Operator
-{
-  void operator ()(Pixel &pixel, const int * position) const
-  {
-    	
-  }
-};
-
 void thinningIteration(cv::Mat& img, int iter)
 {
     CV_Assert(img.channels() == 1);
@@ -96,13 +86,6 @@ void thinningIteration(cv::Mat& img, int iter)
     img &= ~marker;
 }
 
-/**
- * Function for thinning the given binary image
- *
- * Parameters:
- * 		src  The source image, binary with range = [0,255]
- * 		dst  The destination image
- */
 void thinning(const cv::Mat& src, cv::Mat& dst)
 {
     dst = src.clone();
@@ -123,24 +106,47 @@ void thinning(const cv::Mat& src, cv::Mat& dst)
 }
 
 
+int parametricIntersect(float r1, float t1, float r2, float t2, int *x, int *y) {
+    float ct1=cosf(t1);     //matrix element a
+    float st1=sinf(t1);     //b
+    float ct2=cosf(t2);     //c
+    float st2=sinf(t2);     //d
+    float d=ct1*st2-st1*ct2;        //determinative (rearranged matrix for inverse)
+    if(d!=0.0f) {   
+            *x=(int)((st2*r1-st1*r2)/d);
+            *y=(int)((-ct2*r1+ct1*r2)/d);
+            return(1);
+    } else { //lines are parallel and will NEVER intersect!
+            return(0);
+    }
+}
+
 int LDetect(Mat dis, Vec2f v_line, Vec2f h_line){
-	Point p = Point(v_line[0],h_line[0]);
+	// v_line[0] = abs(v_line[0]);
+	// h_line[0] = abs(h_line[0]);
+	return 0;
+	int x,y;
+	parametricIntersect(v_line[0]/2,v_line[1],h_line[0]/2,h_line[1],&x,&y);
+	ROS_INFO("%d %d",x,y);
 	int count_l,count_r;
 	count_l = 1;
 	count_r = 1;
-	for (int i = 0; i < dis.cols; ++i)
+	for (int i = 5; i < dis.cols - 5; ++i)
 	{
-		for (int j = -5; j < 5; ++j)
+		for (int j = -10; j < 10; ++j)
 		{
-			if(dis.at<uchar>(i,p.y + j)){
-				if(i < p.x)
-					count_l++;
-				else
+
+			if(dis.at<uchar>(y + j, i)){
+				// ROS_INFO("i : %d j :%d",i,j + y);
+				if(i > x){
 					count_r++;
+				}
+				else
+					count_l++;
 			} 
 		}
 	}
-	 // ROS_INFO("%d %d\n",p.x,p.y);
+	ROS_INFO("%d %d",count_r,count_l);
 	float ratio = float(count_r)/float(count_l);
 	
 	if(ratio > POINT_RATIO){
@@ -171,6 +177,8 @@ void PublishLines(ros::NodeHandle nh,Mat &dst,Mat &dis, vector<Vec2f> lines, que
     Vec2f v_line,h_line;   
     v_line[0] = 0;
     v_line[1] = 0;
+    h_line[0] = 0;
+    h_line[1] = 0;
     int L; 
     int j = 0;
     while(!cluster_index.empty())
@@ -188,18 +196,17 @@ void PublishLines(ros::NodeHandle nh,Mat &dst,Mat &dis, vector<Vec2f> lines, que
 		t_avg /= size;
 		r_avg *= 2;
 		r_avg /= size;
-		// if(t_avg < 40*CV_PI/180 or t_avg > 320*CV_PI/180)
-		// {
-		//    	v_line[0] = r_avg;
-		//    	v_line[1] = t_avg;
-		// }
-		// else
-		// {
-		// 	h_line[0] = r_avg;
-		//    	h_line[1] = t_avg;
-		// }
-		// L = LDetect(dis,v_line,h_line);
-		ROS_INFO("rho %f theta %f",r_avg,t_avg);
+		if(t_avg < 30.0*CV_PI/180.0 or  (t_avg > 140.0*CV_PI/180.0 and t_avg < 220*CV_PI/180))
+		{
+		   	v_line[0] = r_avg;
+		   	v_line[1] = t_avg;
+		}
+		else
+		{
+			h_line[0] = r_avg;
+		   	h_line[1] = t_avg;
+		}
+		// ROS_INFO("rho %f theta %f",r_avg,t_avg);
 		if(t_avg < 30.0*CV_PI/180.0 or  (t_avg > 140.0*CV_PI/180.0 and t_avg < 220*CV_PI/180))
 		{
 		  	vertical_line.rho = r_avg;
@@ -211,10 +218,14 @@ void PublishLines(ros::NodeHandle nh,Mat &dst,Mat &dis, vector<Vec2f> lines, que
 		else{
 			 if(t_avg > 60.0*CV_PI/180.0 and t_avg<140.0*CV_PI/180.0)
 		   	{
+		   		if(v_line[0])
+		   			L = LDetect(dis,v_line,h_line);
+		   		else
+		   			L = 0;
 		   		warehouse_interiit::Line temp;
 		   		temp.rho = r_avg;
 		   		temp.theta = t_avg;
-		   		// temp.L = L;
+		   		temp.L = L;
 		   		horizontal_lines.lines.push_back(temp);
 		   	}
 		   	double cos_t = cos(t_avg);  double sin_t = sin(t_avg);
@@ -306,7 +317,7 @@ void ClusterLines(ros::NodeHandle nh,Mat &dis,Mat &dst)
 	thinning(dis, dis);
 	cv::imshow("dst", dis);
 
-	HoughLines(dis, lines, 3, CV_PI*3/180,100, 0, 0 );
+	HoughLines(dis, lines, 3, CV_PI*3/180, 80, 0, 0 );
 	// for (int i = 0; i < lines.size(); ++i)
 	// {
 	// 	double cos_t = cos(lines[i][1]);  double sin_t = sin(lines[i][1]);

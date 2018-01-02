@@ -3,6 +3,7 @@
 #include <std_msgs/Float32.h>
 #include <std_msgs/String.h>
 #include <ardrone_autonomy/Navdata.h>
+#include <ardrone_autonomy/CamSelect.h>
 #include <warehouse_interiit/Line.h>
 #include <warehouse_interiit/LineArray.h>
 #include "Config.h"
@@ -19,13 +20,13 @@
 #define CAMERA_VAR_Y 30
 #define MOTION_VAR_X 30
 #define MOTION_VAR_Y 30
-#define GAMMA 1
+#define GAMMA 5
 #define PI 3.14159
 using namespace warehouse_interiit;
 
 
 
-float current_alti;
+float current_alti, mag_heading, line_heading;
 Line line_y;
 LineArray lines_x;
 
@@ -37,6 +38,7 @@ ardrone_autonomy::Navdata navdata;
 void navdata_cb(const ardrone_autonomy::Navdata::ConstPtr& msg){
     navdata = *msg;
     current_alti = (navdata.altd)/1000.0;
+    mag_heading = navdata.rotZ;
 }
 
 float getAverage(float newVal, std::queue<float>& q, float oldVal){
@@ -58,10 +60,11 @@ void x_cb(const LineArray::ConstPtr& msg){
 
 void y_cb(const Line::ConstPtr& msg){
     line_y = *msg;
-    // y = (1-GAMMA)*y + (GAMMA)*line_y.rho;
-    y = getAverage(line_y.rho, ys, y);
-    ROS_INFO("y %f", y);
+    y = getAverage(abs(line_y.rho), ys, y);
     line_y.rho = y;
+    line_heading = (line_y.theta)*180/PI;
+    if(line_heading > 130.0)
+        line_heading = line_heading - 180;
 }
 
 int main(int argc, char **argv)
@@ -69,11 +72,11 @@ int main(int argc, char **argv)
     ros::init(argc, argv, "strategy_node");
     ros::NodeHandle nh;
 
-    ros::Publisher state_pub = nh.advertise<std_msgs::String>("state", 10);
     ros::Publisher x_pub = nh.advertise<Line>("feedback/horizontal", 10);
     ros::Publisher y_pub = nh.advertise<Line>("feedback/vertical", 10);
     ros::Publisher alt_set_pub = nh.advertise<std_msgs::Float32>("altitude_setpoint", 10);
     ros::Publisher yaw_set_pub = nh.advertise<std_msgs::Float32>("yaw_setpoint", 10);
+    ros::Publisher yaw_pub = nh.advertise<std_msgs::Float32>("heading", 10);
     ros::Publisher barcode_scan = nh.advertise<std_msgs::Bool>("code/scan", 100);
     ros::Subscriber navdata_sub = nh.subscribe<ardrone_autonomy::Navdata>
             ("ardrone/navdata", 5, navdata_cb);
@@ -82,10 +85,11 @@ int main(int argc, char **argv)
     ros::Subscriber y_sub = nh.subscribe<Line>
             ("lines/vertical", 5, y_cb);
 
-    ros::Rate rate(30);
-    std_msgs::String state;
+    ros::ServiceClient camToggle = nh.serviceClient<ardrone_autonomy::CamSelect>("/ardrone/setcamchannel");
+
+    ros::Rate rate(20);
     Line last_y, last_x, line_x;
-    std_msgs::Float32 alt_set, yaw_set;
+    std_msgs::Float32 alt_set, yaw_setpoint, current_heading;
     alt_set.data = MIN_HEIGHT;
     bool isHovering = false, isScanning = false, turnFlag = false, yawSet = false;
     float error = 999999, difference = WIDTH_X;
@@ -94,19 +98,17 @@ int main(int argc, char **argv)
     float last_rho;
     y = 0.0, x = 0.0;
     std_msgs::Bool scan;
-
+    ardrone_autonomy::CamSelect cam;
+    cam.request.channel = 1;
+    camToggle.call(cam);
+    int i = 0;
+    int node_num = 0;
     while(ros::ok()){
         ros::spinOnce();
-        if(!yawSet && navdata.rotZ > 1.0){
-            yaw_set.data = navdata.rotZ;
-            yawSet = true;
-        }
-        scan.data = false;
-        barcode_scan.publish(scan);
 
         //Vertical line preprocess
         y_pub.publish(line_y);
-        ROS_INFO("line angle %f", line_y.theta*180/PI);
+
         //Horizontal line preprocess
         if (!isHovering){
             for(int i = 0; i < lines_x.lines.size(); ++i){
@@ -114,7 +116,7 @@ int main(int argc, char **argv)
                     continue;
                 else{
                     if(lines_x.lines[i].rho >= 1.0){
-                        x = getAverage(lines_x.lines[i].rho, xs, x);
+                        x = getAverage(abs(lines_x.lines[i].rho), xs, x);
                         lines_x.lines[i].rho = x;
                     }
                     x_pub.publish(lines_x.lines[i]);
@@ -133,8 +135,9 @@ int main(int argc, char **argv)
                 isHovering = true;
                 scanning_start = ros::Time::now();
                 difference = WIDTH_X;
+                node_num += 1;
+                ROS_INFO("node number %d", node_num);
             }
-            alt_set.data = MIN_HEIGHT;
         }
         else{
             Line temp;
@@ -146,21 +149,33 @@ int main(int argc, char **argv)
                     break;
                 }
             }
-            x_pub.publish(temp);
-            // if(temp.L){
-            //     state.data = (temp.L > 0)?"Turn_Right":"Turn_Left";
-            //     scan.data = false;
-            //     isHovering = false;
-            //     hover_count = 0;
-            //     difference = WIDTH_X;
-            //     alt_set.data = MIN_HEIGHT;
-            //     for(int i = 0; i < 5; ++i){
-            //         state_pub.publish(state);
-            //         alt_set_pub.publish(alt_set);
-            //         ros::Duration(0.1).sleep();
-            //     }
-            //     continue;
+            ++i;
+            // if(i%10 == 0){
+            //     cam.request.channel = 0;
+            //     camToggle.call(cam);
+            //     ros::Duration(0.1).sleep();
             // }
+            // else{
+            //     cam.request.channel = 1;
+            //     camToggle.call(cam);
+            // }
+            x_pub.publish(temp);
+            if(node_num == 3 && (ros::Time::now() - scanning_start > ros::Duration(10.0))){
+                yaw_setpoint.data = mag_heading + 90;
+                scan.data = false;
+                isHovering = false;
+                hover_count = 0;
+                difference = WIDTH_X;
+                alt_set.data = MIN_HEIGHT;
+                while(abs(yaw_setpoint.data - mag_heading) > 5){
+                    current_heading.data = mag_heading;
+                    yaw_pub.publish(current_heading);
+                    yaw_set_pub.publish(yaw_setpoint);
+                    ros::spinOnce();
+                    rate.sleep();
+                }
+                continue;
+            }
             // else{
             //     if(ros::Time::now() - scanning_start < ros::Duration(10.0)){
             //         alt_set.data = MIN_HEIGHT;
@@ -201,16 +216,15 @@ int main(int argc, char **argv)
                 isHovering = false;
                 hover_count = 0;
                 difference = WIDTH_X;
+                // cam.request.channel = 1;
+                // camToggle.call(cam);
             }
         }
-        if(current_alti >= (MIN_HEIGHT - 0.2) && line_y.rho!=0){
-            state.data = "Follow";
-        }
-        else
-            state.data = "Takeoff";
-        state_pub.publish(state);
-        alt_set_pub.publish(alt_set);
-        yaw_set_pub.publish(yaw_set);
+        current_heading.data = line_heading;
+        yaw_pub.publish(current_heading);
+        yaw_setpoint.data = 0.0;
+        // alt_set_pub.publish(alt_set);
+        yaw_set_pub.publish(yaw_setpoint);
         rate.sleep();
     }
 

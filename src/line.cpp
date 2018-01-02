@@ -79,17 +79,17 @@ int main(int argc, char**argv)
 			double x0 = line_y.rho*cos_t, y0 = line_y.rho*sin_t;
 			double alpha = 3000;
 
-			Point pty1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
-			Point pty2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
-			line(dst, pty1, pty2, Scalar(255, 255, 255), 2, CV_AA);
+			// Point pty1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+			// Point pty2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
+			// line(dst, pty1, pty2, Scalar(255, 255, 255), 2, CV_AA);
 
-			cos_t = cos(line_x.theta);
-			sin_t = sin(line_x.theta);
-			x0 = line_x.rho*cos_t, y0 = line_x.rho*sin_t;
+			// cos_t = cos(line_x.theta);
+			// sin_t = sin(line_x.theta);
+			// x0 = line_x.rho*cos_t, y0 = line_x.rho*sin_t;
 
-			Point ptx1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
-			Point ptx2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
-			line(dst, ptx1, ptx2, Scalar(255, 255, 255), 2, CV_AA);
+			// Point ptx1(cvRound(x0 + alpha*(-sin_t)), cvRound(y0 + alpha*cos_t));
+			// Point ptx2(cvRound(x0 - alpha*(-sin_t)), cvRound(y0 - alpha*cos_t));
+			// line(dst, ptx1, ptx2, Scalar(255, 255, 255), 2, CV_AA);
 
 
 			imshow("Display",dst);
