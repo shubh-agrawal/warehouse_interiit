@@ -4,7 +4,7 @@
 #include <iostream>
 using namespace cv;
 using namespace std;
-Mat skull2=imread("skulln2.png");
+Mat skull2=imread("skull.png");
 Mat skull;
 Mat result;
 string sk="skull";
