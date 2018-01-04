@@ -37,12 +37,12 @@
 #define kiX 0.000
 #define kdX 0.06
 
-#define kpY 0.0008
+#define kpY 0.00085
 #define kiY 0.0000
 #define kdY 0.05
 
 #define kpT 0.04
-#define kpTL 0.09
+#define kpTL 0.01
 
 using namespace warehouse_interiit;
 using namespace std;
@@ -72,8 +72,13 @@ void y_cb(const Line::ConstPtr& msg){
 void yaw_set_cb(const std_msgs::Float32::ConstPtr& msg){
     setpoint_heading = msg->data;
 }
+
 void yaw_cb(const std_msgs::Float32::ConstPtr& msg){
     current_heading = msg->data;
+}
+
+void state_cb(const std_msgs::String::ConstPtr& msg){
+    current_state = msg->data;
 }
 
 int main(int argc, char **argv)
@@ -91,6 +96,8 @@ int main(int argc, char **argv)
             ("/yaw_setpoint", 5, yaw_set_cb);
     ros::Subscriber yaw_sub = nh.subscribe<std_msgs::Float32>
             ("/heading", 5, yaw_cb);
+    ros::Subscriber state_sub = nh.subscribe<std_msgs::String>
+            ("/state", 5, state_cb);
 
     ros::Publisher vel_pub = nh.advertise<geometry_msgs::Twist>
             ("/cmd_vel/strategy", 10);
@@ -127,54 +134,57 @@ int main(int argc, char **argv)
     while(ros::ok()){
         ros::spinOnce();
         if(navdata.batteryPercent > 40){
-            if(ros::Time::now() - start < ros::Duration(0.5) && !isTookOff){
+            if(ros::Time::now() - start < ros::Duration(0.4) && !isTookOff){
                 takeoff_pub.publish(empty);
             }
             if(ros::Time::now() - start < ros::Duration(50.0)){
-            	// if(!nodeReached){
-	            	if(isTookOff){
-                        if(setpoint_heading == 0.0){
-    		                errorX = 360.0/2 - line_x.rho;
-    		                error_diffX = errorX-last_errorX;
-    		                if((errorX < 20 && errorX > -20) && (error_diffX < 20 && error_diffX > -20))
-    		                    error_diffX = 0;
-    		                vx = kpX*errorX + kdX*error_diffX;
-    		                if(vx > MAX_VELOCITY)
-    		                    vx = MAX_VELOCITY;
-    		                else if(vx < -1*MAX_VELOCITY)
-    		                    vx = -1*MAX_VELOCITY;
-    		                // ROS_INFO("vx %f \t errorX %f \t p %f \t d %f", vx, errorX, kpX*errorX, kdX*error_diffX);
-    		                last_errorX = errorX;
+            	if(isTookOff && current_state == "Follow"){
+		                errorX = 150.0 - line_x.rho;
+		                error_diffX = errorX-last_errorX;
+		                if((errorX < 20 && errorX > -20) && (error_diffX < 20 && error_diffX > -20))
+		                    error_diffX = 0;
+		                vx = kpX*errorX + kdX*error_diffX;
+		                if(vx > MAX_VELOCITY)
+		                    vx = MAX_VELOCITY;
+		                else if(vx < -1*MAX_VELOCITY)
+		                    vx = -1*MAX_VELOCITY;
+		                // ROS_INFO("vx %f \t errorX %f \t p %f \t d %f", vx, errorX, kpX*errorX, kdX*error_diffX);
+		                last_errorX = errorX;
 
-    		                errorY = 640.0/2 - line_y.rho;
-    		                error_diffY = errorY - last_errorY;
-    		                if((errorY < 20 && errorY > -20) && (error_diffY < 20 && error_diffY > -20))
-    		                    error_diffY = 0;
-    		                vy = -1*(kpY*errorY + kdY*error_diffY);
-    		                if(vy > MAX_VELOCITY)
-    		                    vy = MAX_VELOCITY;
-    		                else if(vy < -1*MAX_VELOCITY)
-    		                    vy = -1*MAX_VELOCITY;
-    		                // ROS_INFO("vy %f \t errorY %f \t p %f \t d %f", vy, errorY, kpY*errorY, kdY*error_diffY);
-    		                last_errorY = errorY;
+		                errorY = 640.0/2 - line_y.rho;
+		                error_diffY = errorY - last_errorY;
+		                if((errorY < 20 && errorY > -20) && (error_diffY < 20 && error_diffY > -20))
+		                    error_diffY = 0;
+		                vy = -1*(kpY*errorY + kdY*error_diffY);
+		                if(vy > MAX_VELOCITY)
+		                    vy = MAX_VELOCITY;
+		                else if(vy < -1*MAX_VELOCITY)
+		                    vy = -1*MAX_VELOCITY;
+		                // ROS_INFO("vy %f \t errorY %f \t p %f \t d %f", vy, errorY, kpY*errorY, kdY*error_diffY);
+		                last_errorY = errorY;
 
-                            errorT = setpoint_heading - current_heading;
-                            angz = kpT*errorT;
-                            if(angz > 1.0)
-                                angz = 1.0;
-                            else if(angz < -1.0)
-                                angz = -1.0;
+                        errorT = setpoint_heading - current_heading;
+                        angz = kpT*errorT;
+                        if(angz > 1.0)
+                            angz = 1.0;
+                        else if(angz < -1.0)
+                            angz = -1.0;
+
+                        errorH = 2.0 - current_alti;
+                        vz = kpH*errorH;
+                        if(vz > 1.0)
+                            vz = 1.0;
+                        else if(vz < -1.0)
+                            vz = -1.0;
+                        if(abs(errorH) < 0.1){
+                            vz = 0.0;
                         }
-                        else{
-                            errorT = setpoint_heading - current_heading;
-                            angz = kpTL*errorT;
-                            if(angz > 1.0)
-                                angz = 1.0;
-                            else if(angz < -1.0)
-                                angz = -1.0;
-                        }
-					}
-	                errorH = 1.5 - current_alti;
+				}
+                else if(!isTookOff && current_state == "Follow"){
+                    vx = 0.0;
+                    vy = 0.0;
+                    angz = 0.0;
+                    errorH = 2.0 - current_alti;
 	                vz = kpH*errorH;
 	                if(vz > 1.0)
 	                    vz = 1.0;
@@ -185,19 +195,30 @@ int main(int argc, char **argv)
 	                }
 	                if(errorH < 0.3)
 	                	isTookOff = true;
-	            // }
-	            // ROS_INFO("X %f Y %f H %f", errorX, errorY, errorH);
-             //    if(abs(errorX) < 15 && abs(errorY) < 15 && abs(errorH) < 0.15){
-             //    	vx = 0.0;
-             //    	vy = 0.0;
-             //    	vz = 0.0;
-             //    	angz = 0.0;
-             //    	nodeReached = true;
-             //    	ROS_INFO("Hovering");
-             //    }
+                }
+                else if(isTookOff && current_state == "Turning"){
+                    vx = 0.0;
+                    vy = 0.0;
+                    vz = 0.0;
+                    errorT = setpoint_heading - current_heading;
+                    angz = kpTL*errorT;
+                    if(angz > 1.0)
+                        angz = 1.0;
+                    else if(angz < -1.0)
+                        angz = -1.0;
+                }
+            // ROS_INFO("X %f Y %f H %f", errorX, errorY, errorH);
+         //    if(abs(errorX) < 15 && abs(errorY) < 15 && abs(errorH) < 0.15){
+         //    	vx = 0.0;
+         //    	vy = 0.0;
+         //    	vz = 0.0;
+         //    	angz = 0.0;
+         //    	nodeReached = true;
+         //    	ROS_INFO("Hovering");
+         //    }
 
             }
-            else if(ros::Time::now() - start >= ros::Duration(50.0) && isTookOff){
+            else if(ros::Time::now() - start >= ros::Duration(60.0) && isTookOff){
                 land_pub.publish(empty);
                 vy = 0.0;
             }

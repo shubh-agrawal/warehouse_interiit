@@ -1,3 +1,4 @@
+#include "Config.h"
 #include <ros/ros.h>
 #include <image_transport/image_transport.h>
 #include <cv_bridge/cv_bridge.h>
@@ -12,7 +13,7 @@ using namespace std;
 using namespace cv;
 
 Mat img;
-
+bool newImage;
 void imageCallback(const sensor_msgs::ImageConstPtr& msg)
 {
   try
@@ -142,6 +143,7 @@ int main(int argc, char** argv)
     image_transport::Subscriber sub = it.subscribe(CAM_TOPIC, 1, imageCallback);
     ros::Publisher centerPub = nh.advertise<geometry_msgs::Point>("square", 5);
     ros::Rate rate(20);
+    newImage = false;
     Point center;
     geometry_msgs::Point pt;
     vector<vector<Point> > squares;

@@ -317,7 +317,7 @@ void ClusterLines(ros::NodeHandle nh,Mat &dis,Mat &dst)
 	thinning(dis, dis);
 	cv::imshow("dst", dis);
 
-	HoughLines(dis, lines, 3, CV_PI*3/180, 80, 0, 0 );
+	HoughLines(dis, lines, 3, CV_PI*3/180, 55, 0, 0 );
 	// for (int i = 0; i < lines.size(); ++i)
 	// {
 	// 	double cos_t = cos(lines[i][1]);  double sin_t = sin(lines[i][1]);
