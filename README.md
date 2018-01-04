@@ -95,3 +95,27 @@ Color segmentation based on HSV color space is done on the down ward facing came
 Clustering Algorithm is used to find the best fitting line and publishes the line in vertical and array of lines in horizontal direction.
 
 
+#### Changing hotspot from ardrone to custom router 
+
+``` echo "./data/wifi.sh" | telnet 192.168.1.1 ```
+
+
+#### IP adresses assigned
+
+Ardrone : ``` 192.168.1.10 ```
+
+Laptop : ``` 192.168.1.102 ```
+
+RPi : ``` 192.168.1.101 ``` 
+
+
+#### Steps to run Quad 
+
+- Connect to ardrone
+- Run the above command to shift the hotspot to custom router
+- Connect to wareone SSID
+- ssh to RPi and roslaunch raspicam_node camerav2_1280x720*.launch
+- roslaunch warehouse_interiit ardrone.launch on Laptop
+- Connect controller 
+- roslaunch warehouse_interiit controller.launch on Laptop
+-  
